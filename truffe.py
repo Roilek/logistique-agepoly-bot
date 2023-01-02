@@ -81,14 +81,20 @@ def _get_specific_states_reservations_from_truffe(states: list) -> list[dict]:
     return list(filter(lambda res: res['state'] in states, reservations))
 
 
-def _get_res_pk_name_from_list(res_list: list[dict]) -> list[tuple[int, str]]:
-    """Returns a list of tuples of the form (pk, name) from a list of reservations"""
-    return [(res['pk'], res['asking_unit_name']) for res in res_list]
+def get_keyboard_for_res_list(states: list) -> telegram.InlineKeyboardMarkup:
+    """Returns a keyboard with all the reservations with one of the given states"""
+    res_list = get_res_pk_info(states)
+    keyboard = []
+    for res in res_list:
+        keyboard.append([telegram.InlineKeyboardButton(res[1], callback_data=res[0])])
+    return telegram.InlineKeyboardMarkup(keyboard)
 
 
-def get_res_pk_name_from_truffe(states: list) -> list[tuple[int, str]]:
-    """Returns a list of tuples of the form (pk, name) from a list of reservations with one of the given states"""
-    return _get_res_pk_name_from_list(_get_specific_states_reservations_from_truffe(states))
+def get_res_pk_info(states: list) -> list[tuple[int, str]]:
+    """Returns a list of tuples (pk, title) of all the reservations with one of the given states"""
+    res_list = _get_specific_states_reservations_from_truffe(states)
+    short_infos = [(res['pk'], ''.join(["Res : ", res['title']])) for res in res_list]
+    return short_infos
 
 
 def _get_reservation_from_truffe(data: str) -> dict:
