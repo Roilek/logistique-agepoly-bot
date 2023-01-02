@@ -29,7 +29,8 @@ async def help_command(update: telegram.Update, context: CallbackContext) -> any
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
-    await update.message.reply_text('Please choose:', reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS))
+    await update.message.reply_text('Please choose:',
+                                    reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS))
 
 
 async def callback_query_handler(update: telegram.Update, context: CallbackContext) -> any:
@@ -59,7 +60,8 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
     # Get the reservation description
     text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
 
-    await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2, reply_markup=mytelegram.get_reservation_keyboard(pk))
+    await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
+                                  reply_markup=mytelegram.get_reservation_keyboard(pk))
 
 
 def main():

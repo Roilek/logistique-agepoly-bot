@@ -125,11 +125,11 @@ def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
     formatted_info += '\n'
     formatted_info += '*Informations pratiques*\n'
     for key, value in infos["practical_infos"].items():
-        formatted_info += f'{telegram.helpers.escape_markdown(value,MARKDOWN_VERSION)}\n'
+        formatted_info += f'{telegram.helpers.escape_markdown(value, MARKDOWN_VERSION)}\n'
     formatted_info += '\n'
     for key, value in infos["comments"].items():
         if value is not None:
-            formatted_info += f'*{key}*\n{telegram.helpers.escape_markdown(value,MARKDOWN_VERSION)}\n'
+            formatted_info += f'*{key}*\n{telegram.helpers.escape_markdown(value, MARKDOWN_VERSION)}\n'
             formatted_info += '\n'
 
     return formatted_info
