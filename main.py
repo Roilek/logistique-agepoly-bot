@@ -39,7 +39,6 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
     """Detects that a button has been pressed and send the corresponding reservation informations."""
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="Loading...")
     text = truffe.get_formatted_reservation_relevant_info_from_pk(query.data)
     await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
 
