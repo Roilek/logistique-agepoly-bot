@@ -1,34 +1,31 @@
 import telegram
 from telegram.ext import CallbackContext, Updater, CommandHandler, Application
 
-import os
-from dotenv import load_dotenv
+from env import get_environment_variables
 
-load_dotenv()
+import truffe
+from truffe import State
 
-TOKEN = os.environ.get('TOKEN')
-TRUFFE_TOKEN = os.environ.get('TRUFFE_TOKEN')
+
+TOKEN = get_environment_variables()['TOKEN']
 
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     await update.message.reply_text('Hi!')
-    return
 
 
 async def help_command(update: telegram.Update, context: CallbackContext) -> any:
     await update.message.reply_text('Help!')
-    return
 
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message to the user with buttons to click"""
     keyboard = []
-    buttons = [str(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+    buttons = truffe.get_res_pk_name_from_truffe(State.ONLINE)
     for button in buttons:
-        keyboard.append([telegram.InlineKeyboardButton(button, callback_data=button)])
+        keyboard.append([telegram.InlineKeyboardButton(button[1], callback_data=button[0])])
     reply_markup = telegram.InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Please choose:', reply_markup=reply_markup)
-    return
 
 
 def main():
@@ -40,7 +37,6 @@ def main():
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(CommandHandler('reservations', get_reservations))
     application.run_polling()
-    return
 
 
 if __name__ == '__main__':
