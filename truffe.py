@@ -1,7 +1,4 @@
-import json
-
 import requests
-from requests.structures import CaseInsensitiveDict
 from main import TRUFFE_TOKEN
 
 
