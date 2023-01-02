@@ -11,15 +11,17 @@ TOKEN = get_environment_variables()['TOKEN']
 
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
+    """Send a message when the command /start is issued."""
     await update.message.reply_text('Hi!')
 
 
 async def help_command(update: telegram.Update, context: CallbackContext) -> any:
+    """Send a message when the command /help is issued."""
     await update.message.reply_text('Help!')
 
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
-    """Send a message to the user with buttons to click"""
+    """Send a list of buttons when the command /reservations is issued."""
     keyboard = []
     buttons = truffe.get_res_pk_name_from_truffe(State.ONLINE)
     for button in buttons:
@@ -29,6 +31,7 @@ async def get_reservations(update: telegram.Update, context: CallbackContext) ->
 
 
 def main():
+    """Start the bot."""
     # Create application
     application = Application.builder().token(TOKEN).build()
 
