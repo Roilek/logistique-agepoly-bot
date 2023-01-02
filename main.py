@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.environ.get('TOKEN')
+TRUFFE_TOKEN = os.environ.get('TRUFFE_TOKEN')
 
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
