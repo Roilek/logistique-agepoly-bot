@@ -6,6 +6,8 @@ from env import get_environment_variables
 import truffe
 from truffe import State
 
+import mytelegram
+
 TOKEN = get_environment_variables()['TOKEN']
 
 ACCEPT_DEFAULT_RESERVATIONS = [
@@ -27,7 +29,7 @@ async def help_command(update: telegram.Update, context: CallbackContext) -> any
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
-    await update.message.reply_text('Please choose:', reply_markup=truffe.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS))
+    await update.message.reply_text('Please choose:', reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS))
 
 
 async def callback_query_handler(update: telegram.Update, context: CallbackContext) -> any:
@@ -39,7 +41,7 @@ async def callback_query_handler(update: telegram.Update, context: CallbackConte
     if data == "reservations":
         await query.edit_message_text(
             text="Please choose:",
-            reply_markup=truffe.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS)
+            reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS)
         )
     elif data.isdigit():
         await develop_specific_reservations(update, context)
@@ -52,13 +54,12 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
     query = update.callback_query
     await query.answer()
 
-    # Get the reservation description
-    text = truffe.get_formatted_reservation_relevant_info_from_pk(query.data)
+    pk = int(query.data)
 
-    # Send the reservation description with a button to go back to the list of reservations
-    keyboard = [[telegram.InlineKeyboardButton("⬅️", callback_data="reservations")]]
-    reply_markup = telegram.InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2, reply_markup=reply_markup)
+    # Get the reservation description
+    text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
+
+    await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2, reply_markup=mytelegram.get_reservation_keyboard(pk))
 
 
 def main():

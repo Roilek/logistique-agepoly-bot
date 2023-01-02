@@ -17,6 +17,7 @@ STATE_MAPPING = {
     '2_online': 'validée',
 }
 MARKDOWN_VERSION = 2
+TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
 
 
 # Enum of states as str
@@ -81,15 +82,6 @@ def _get_specific_states_reservations_from_truffe(states: list) -> list[dict]:
     return list(filter(lambda res: res['state'] in states, reservations))
 
 
-def get_keyboard_for_res_list(states: list) -> telegram.InlineKeyboardMarkup:
-    """Returns a keyboard with all the reservations with one of the given states"""
-    res_list = get_res_pk_info(states)
-    keyboard = []
-    for res in res_list:
-        keyboard.append([telegram.InlineKeyboardButton(res[1], callback_data=res[0])])
-    return telegram.InlineKeyboardMarkup(keyboard)
-
-
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
     """Returns a list of tuples (pk, title) of all the reservations with one of the given states"""
     res_list = _get_specific_states_reservations_from_truffe(states)
@@ -97,13 +89,13 @@ def get_res_pk_info(states: list) -> list[tuple[int, str]]:
     return short_infos
 
 
-def _get_reservation_from_truffe(data: str) -> dict:
+def _get_reservation_from_truffe(pk: int) -> dict:
     """Returns a reservation's dict from its pk"""
     reservations = _get_specific_states_reservations_from_truffe(State.all_values())
-    return list(filter(lambda res: res['pk'] == int(data), reservations))[0]
+    return list(filter(lambda res: res['pk'] == pk, reservations))[0]
 
 
-def get_formatted_reservation_relevant_info_from_pk(pk: str) -> str:
+def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
     """Returns a formatted string with the relevant information of a reservation from its pk"""
     reservation = _get_reservation_from_truffe(pk)
 
@@ -143,7 +135,10 @@ def get_formatted_reservation_relevant_info_from_pk(pk: str) -> str:
     return formatted_info
 
 
-def get_agreement_link_from_pk(pk: str) -> str:
+def get_agreement_url_from_pk(pk: int) -> str:
     """Returns the link to the agreement of a reservation from its pk"""
-    reservation = _get_reservation_from_truffe(pk)
-    return reservation['agreement']
+    return f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"
+
+
+def get_reservation_page_url_from_pk(pk: int) -> str:
+    return f"{TRUFFE_PATH}supplyreservation/{pk}/"
