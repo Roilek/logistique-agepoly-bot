@@ -19,7 +19,10 @@ ACCEPT_DEFAULT_RESERVATIONS = [
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
-    await update.message.reply_text('Hi!')
+    text = "Hello! I'm the Logistic's helper bot."
+    text += "\n"
+    text += "send me /reservations to get the list of your reservations."
+    await update.message.reply_text(text)
 
 
 async def help_command(update: telegram.Update, context: CallbackContext) -> any:

@@ -68,18 +68,12 @@ def _get_json_from_truffe() -> any:
     return truffe_cache
 
 
-def _get_all_reservations_from_truffe(aggregate_external=False) -> list[dict]:
-    """Returns a list of all the reservations"""
+
+def _get_specific_states_reservations_from_truffe(states: list, aggregate_external: bool = True) -> list[dict]:
+    """Returns a list of all the reservations with one of the given states"""
     reservations = _get_json_from_truffe()['supplyreservations']
-    return _remove_external_difference(reservations) if aggregate_external else reservations
-
-
-def _get_specific_states_reservations_from_truffe(states: list) -> list[dict]:
-    """Returns a list of all the reservations with one of the given states
-    :param states:
-    """
-    reservations = _get_all_reservations_from_truffe(True)
-    return list(filter(lambda res: res['state'] in states, reservations))
+    standard_reservations = _remove_external_difference(reservations) if aggregate_external else reservations
+    return list(filter(lambda res: res['state'] in states, standard_reservations))
 
 
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
