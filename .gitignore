@@ -2,3 +2,5 @@
 .idea/
 __pycache__/
 debug/
+credentials.json
+tests.py
