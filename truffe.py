@@ -1,5 +1,6 @@
 import enum
 import time
+import copy
 
 import requests
 import telegram
@@ -51,18 +52,16 @@ def _remove_external_difference(res_list: list[dict]) -> list[dict]:
     return res_list
 
 
-def _dates_to_iso_format(res_list: list[dict]) -> list[dict]:
-    """Converts the dates of a list of reservations to the iso format"""
-    # Truffe gives format 2022-11-25 14:10:00+00:00
-    # Iso is format       2022-11-25T14:10:00
-    # We therefore replace the space by a T and remove the timezone
-    index_t = 10
-    index_cut = 19
+def _shift_time(date: str) -> str:
+    """Shift a date to the current time zone"""
+    return (datetime.datetime.fromisoformat(date) + datetime.timedelta(hours=1)).isoformat()
+
+
+def _manage_time_shift(res_list: list[dict[str, str]]) -> list[dict]:
+    """Shift the dates of the reservations to the current time zone"""
     for res in res_list:
-        date = res['start_date']
-        res['start_date'] = date[:index_t] + 'T' + date[index_t + 1:index_cut]
-        date = res['end_date']
-        res['end_date'] = date[:index_t] + 'T' + date[index_t + 1:index_cut]
+        res['start_date'] = _shift_time(res['start_date'])
+        res['end_date'] = _shift_time(res['end_date'])
     return res_list
 
 
@@ -101,34 +100,31 @@ def _get_json_from_truffe() -> any:
         truffe_cache = reservations.json()
         last_update = time.time()
 
-    return truffe_cache
+    return copy.deepcopy(truffe_cache)
 
 
-def _get_specific_states_reservations_from_truffe(states: list, aggregate_external: bool = True) -> list[dict]:
+def get_specific_states_reservations_from_truffe(states: list, aggregate_external: bool = True,
+                                                 standardize_dates: bool = True) -> list[dict]:
     """Returns a list of all the reservations with one of the given states"""
     reservations = _get_json_from_truffe()['supplyreservations']
-    standard_reservations = _remove_external_difference(reservations) if aggregate_external else reservations
-    standard_reservations = _dates_to_iso_format(standard_reservations)
-    standard_reservations = _sort_by_date(standard_reservations)
-    return list(filter(lambda res: res['state'] in states, standard_reservations))
+    reservations = _remove_external_difference(reservations) if aggregate_external else reservations
+    reservations = _manage_time_shift(reservations) if standardize_dates else reservations
+    reservations = _sort_by_date(reservations)
+    return list(filter(lambda res: res['state'] in states, reservations))
 
 
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
     """Returns a list of tuples (pk, title) of all the reservations with one of the given states"""
-    res_list = _get_specific_states_reservations_from_truffe(states)
-    short_infos = [(res['pk'], ' - '.join([_get_datetime(res['start_date']), res['title'], res['asking_unit_name']])) for res in res_list]
+    res_list = get_specific_states_reservations_from_truffe(states)
+    short_infos = [(res['pk'], ' - '.join([_get_datetime(res['start_date']), res['title'], res['asking_unit_name']]))
+                   for res in res_list]
     return short_infos
-
-
-def _get_reservation_from_truffe(pk: int) -> dict:
-    """Returns a reservation's dict from its pk"""
-    reservations = _get_specific_states_reservations_from_truffe(State.all_values())
-    return list(filter(lambda res: res['pk'] == pk, reservations))[0]
 
 
 def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
     """Returns a formatted string with the relevant information of a reservation from its pk"""
-    reservation = _get_reservation_from_truffe(pk)
+    reservations = get_specific_states_reservations_from_truffe(State.all_values())
+    reservation = list(filter(lambda res: res['pk'] == pk, reservations))[0]
 
     # Create dict with relevant information
     infos = {
