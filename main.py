@@ -78,6 +78,7 @@ def main():
     application.add_handler(CommandHandler('reservations', get_reservations))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
+
     application.run_polling()
 
 

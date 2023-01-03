@@ -3,6 +3,7 @@ import time
 
 import requests
 import telegram
+import datetime
 
 from env import get_environment_variables
 
@@ -12,9 +13,9 @@ last_update = None
 truffe_cache = {}
 
 STATE_MAPPING = {
-    '0_draft': 'en brouillon',
-    '1_asking': 'en cours de validation',
-    '2_online': 'validée',
+    '0_draft': 'en brouillon ⚠️',
+    '1_asking': 'en cours de validation ⚠️',
+    '2_online': 'validée ✅',
 }
 MARKDOWN_VERSION = 2
 TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
@@ -50,6 +51,31 @@ def _remove_external_difference(res_list: list[dict]) -> list[dict]:
     return res_list
 
 
+def _sort_by_date(res_list: list[dict]) -> list[dict]:
+    """Sort a list of reservations by date"""
+    return sorted(res_list, key=lambda res: res['start_date'])
+
+
+def _parse_date(date: str) -> datetime:
+    """Returns a datetime object from a string"""
+    return datetime.datetime(int(date[0:4]), int(date[5:7]), int(date[8:10]), int(date[11:13]), int(date[14:16]))
+
+
+def _format_date(date: str) -> str:
+    """Returns a string from a date in the format day/month"""
+    return _parse_date(date).strftime("%d/%m")
+
+
+def _format_time(date: str) -> str:
+    """Returns a string from a date in the format hour:minutes"""
+    return _parse_date(date).strftime("%H:%M")
+
+
+def _format_datetime(date: str) -> str:
+    """Returns a string from a date in the format day/month hour:minutes"""
+    return _parse_date(date).strftime("%d/%m %H:%M")
+
+
 def _get_json_from_truffe() -> any:
     """Returns a json of all the reservations"""
     # Refresh truffe cache every 10 minutes
@@ -68,18 +94,18 @@ def _get_json_from_truffe() -> any:
     return truffe_cache
 
 
-
 def _get_specific_states_reservations_from_truffe(states: list, aggregate_external: bool = True) -> list[dict]:
     """Returns a list of all the reservations with one of the given states"""
     reservations = _get_json_from_truffe()['supplyreservations']
     standard_reservations = _remove_external_difference(reservations) if aggregate_external else reservations
+    standard_reservations = _sort_by_date(standard_reservations)
     return list(filter(lambda res: res['state'] in states, standard_reservations))
 
 
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
     """Returns a list of tuples (pk, title) of all the reservations with one of the given states"""
     res_list = _get_specific_states_reservations_from_truffe(states)
-    short_infos = [(res['pk'], ''.join(["Res : ", res['title']])) for res in res_list]
+    short_infos = [(res['pk'], ' - '.join([_format_datetime(res['start_date']), res['title'], res['asking_unit_name']])) for res in res_list]
     return short_infos
 
 
@@ -99,12 +125,12 @@ def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
             "Reservation": reservation['state']
         },
         "practical_infos": {
-            "Nom de la réservation": reservation['title'],
-            "Nom de l'unité": reservation['asking_unit_name'],
-            "Téléphone": reservation['contact_phone'],
-            "Telegram": reservation['contact_telegram'],
-            "Date d'emprunt": reservation['start_date'],
-            "Date de rendu": reservation['end_date'],
+            "Nom de la réservation": f"Reservation : {reservation['title']}",
+            "Nom de l'unité": f"Unité : {reservation['asking_unit_name']}",
+            "Téléphone": f"Tel : {reservation['contact_phone']}",
+            "Telegram": f"Telegram : {reservation['contact_telegram']}",
+            "Date d'emprunt": f"Prêt le {_format_date(reservation['start_date'])} à {_format_time(reservation['start_date'])}",
+            "Date de rendu": f"Rendu le {_format_date(reservation['end_date'])} à {_format_time(reservation['end_date'])}",
         },
         "comments": {
             "Commentaire entité": reservation['reason'],
