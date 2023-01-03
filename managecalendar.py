@@ -6,7 +6,6 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
 import truffe
-from main import DEFAULT_ACCEPTED_STATES
 
 PATH = "credentials.json"
 service_account_name = 'logistique-agepoly-google-bot@logistique-agepoly-bot.iam.gserviceaccount.com'
@@ -15,7 +14,7 @@ TIMEZONE = 'Europe/Zurich'
 EVENT_LOCATION = "Boutique de l'AGEPoly, sur l'Esplanade"
 
 
-def get_calendar():
+def get_calendar() -> any:
     """Connect to the Google Calendar API using a service account."""
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.load(open(PATH)),
                                                                    scopes=['https://www.googleapis.com/auth/calendar'])
@@ -25,7 +24,8 @@ def get_calendar():
     return calendar
 
 
-def create_event(title, description, start, location=EVENT_LOCATION, timezone=TIMEZONE) -> dict:
+def create_event(title: str, description: str, start: str, location: str = EVENT_LOCATION,
+                 timezone: str = TIMEZONE) -> dict:
     """Create an event in the Google Calendar."""
     event = {
         'summary': title,
@@ -48,9 +48,10 @@ def add_events_to_calendar(events: list, calendar=get_calendar()) -> None:
     for event in events:
         calendar.events().insert(calendarId=calendarId, body=event).execute()
         print(f"Event {event['summary']} added to the calendar.")
+    return
 
 
-def update_calendar(reservations: list[dict]):
+def update_calendar(reservations: list[dict]) -> None:
     """Update the Google Calendar with the events from Truffe."""
     # create events
     events = [create_event(reservation['title'], truffe.get_agreement_url_from_pk(reservation['pk']),
@@ -60,18 +61,21 @@ def update_calendar(reservations: list[dict]):
     calendar = get_calendar()
     # add events to the calendar
     add_events_to_calendar(events, calendar)
+    return
 
 
-def delete_all_events():
+def delete_all_events() -> None:
     """Delete all events from the Google Calendar."""
     calendar = get_calendar()
     events = calendar.events().list(calendarId=calendarId).execute()
     for event in events['items']:
         calendar.events().delete(calendarId=calendarId, eventId=event['id']).execute()
         print(f"Event {event['summary']} deleted from the calendar.")
+    return
 
 
-def hard_refresh():
+def hard_refresh(reservations: list[dict]):
     """Delete all events from the Google Calendar and add all events from Truffe."""
     delete_all_events()
-    update_calendar()
+    update_calendar(reservations)
+    return

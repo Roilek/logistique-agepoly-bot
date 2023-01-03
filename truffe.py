@@ -13,13 +13,16 @@ TRUFFE_TOKEN = get_environment_variables()['TRUFFE_TOKEN']
 last_update = None
 truffe_cache = {}
 
+MARKDOWN_VERSION = 2
+TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
+TRUFFE_CACHE_STALE = 60 # seconds
+
+
 STATE_MAPPING = {
     '0_draft': 'en brouillon ⚠️',
     '1_asking': 'en cours de validation ⚠️',
     '2_online': 'validée ✅',
 }
-MARKDOWN_VERSION = 2
-TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
 
 
 # Enum of states as str
@@ -31,16 +34,27 @@ class State(enum.Enum):
     # Will need to be updated if more states are added
 
     @classmethod
-    def all_names(cls):
+    def all_names(cls) -> list:
         return [state.name for state in cls]
 
     @classmethod
-    def all_values(cls):
+    def all_values(cls) -> list:
         return [state.value for state in cls]
 
     @classmethod
-    def translate(cls, value):
+    def translate(cls, value) -> str:
         return STATE_MAPPING[value]
+
+
+DEFAULT_ACCEPTED_STATES = [
+    State.ONLINE.value,
+]
+
+EXTENDED_ACCEPTED_STATES = [
+    State.ONLINE.value,
+    State.ASKING.value,
+    State.DRAFT.value,
+]
 
 
 def _remove_external_difference(res_list: list[dict]) -> list[dict]:
@@ -90,7 +104,7 @@ def _get_json_from_truffe() -> any:
     # Refresh truffe cache every 10 minutes
     global last_update
     global truffe_cache
-    if last_update is None or last_update + 60 < time.time():
+    if last_update is None or last_update + TRUFFE_CACHE_STALE < time.time():
         infos = ['asking_unit_name', 'contact_telegram', 'start_date', 'end_date', 'contact_phone', 'reason', 'remarks',
                  'agreement']
         url = "https://truffe2.agepoly.ch/logistics/api/supplyreservations?" + '&'.join(infos)
@@ -103,8 +117,8 @@ def _get_json_from_truffe() -> any:
     return copy.deepcopy(truffe_cache)
 
 
-def get_specific_states_reservations_from_truffe(states: list, aggregate_external: bool = True,
-                                                 standardize_dates: bool = True) -> list[dict]:
+def get_reservations(states: list = DEFAULT_ACCEPTED_STATES, aggregate_external: bool = True,
+                     standardize_dates: bool = True) -> list[dict]:
     """Returns a list of all the reservations with one of the given states"""
     reservations = _get_json_from_truffe()['supplyreservations']
     reservations = _remove_external_difference(reservations) if aggregate_external else reservations
@@ -115,7 +129,7 @@ def get_specific_states_reservations_from_truffe(states: list, aggregate_externa
 
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
     """Returns a list of tuples (pk, title) of all the reservations with one of the given states"""
-    res_list = get_specific_states_reservations_from_truffe(states)
+    res_list = get_reservations(states)
     short_infos = [(res['pk'], ' - '.join([_get_datetime(res['start_date']), res['title'], res['asking_unit_name']]))
                    for res in res_list]
     return short_infos
@@ -123,7 +137,7 @@ def get_res_pk_info(states: list) -> list[tuple[int, str]]:
 
 def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
     """Returns a formatted string with the relevant information of a reservation from its pk"""
-    reservations = get_specific_states_reservations_from_truffe(State.all_values())
+    reservations = get_reservations(State.all_values())
     reservation = list(filter(lambda res: res['pk'] == pk, reservations))[0]
 
     # Create dict with relevant information
