@@ -3,4 +3,5 @@
 __pycache__/
 debug/
 credentials.json
+tests-calendar.py
 tests.py
