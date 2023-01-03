@@ -50,13 +50,11 @@ def add_events_to_calendar(events: list, calendar=get_calendar()) -> None:
         print(f"Event {event['summary']} added to the calendar.")
 
 
-def update_calendar():
+def update_calendar(reservations: list[dict]):
     """Update the Google Calendar with the events from Truffe."""
-    # get reservations from truffe
-    reservations = truffe.get_specific_states_reservations_from_truffe(DEFAULT_ACCEPTED_STATES
-                                                                       )
     # create events
-    events = [create_event(reservation['title'], truffe.get_agreement_url_from_pk(reservation['pk']), reservation['start_date'],
+    events = [create_event(reservation['title'], truffe.get_agreement_url_from_pk(reservation['pk']),
+                           reservation['start_date'],
                            ) for reservation in reservations]
     # Create the calendar once and use it for all events
     calendar = get_calendar()
