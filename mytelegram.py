@@ -3,12 +3,19 @@ import telegram
 import truffe
 
 
-def get_keyboard_for_res_list(states: list) -> telegram.InlineKeyboardMarkup:
+def get_keyboard_for_res_list(states: list, displaying_all_res: bool = False) -> telegram.InlineKeyboardMarkup:
     """Returns a keyboard with all the reservations with one of the given states"""
     res_list = truffe.get_res_pk_info(states)
     keyboard = []
     for res in res_list:
         keyboard.append([telegram.InlineKeyboardButton(res[1], callback_data=res[0])])
+    # if we are already displaying all the reservations, we add a button to go back to the default view
+    if displaying_all_res:
+        keyboard.append(
+            [telegram.InlineKeyboardButton("Voir uniquement les demandes validées", callback_data="reservations")])
+    else:
+        keyboard.append(
+            [telegram.InlineKeyboardButton("Voir les demandes non validées", callback_data="display_all_res")])
     return telegram.InlineKeyboardMarkup(keyboard)
 
 

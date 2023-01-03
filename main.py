@@ -10,10 +10,14 @@ import mytelegram
 
 TOKEN = get_environment_variables()['TOKEN']
 
-ACCEPT_DEFAULT_RESERVATIONS = [
+DEFAULT_ACCEPTED_STATES = [
+    State.ONLINE.value,
+]
+
+EXTENDED_ACCEPTED_STATES = [
     State.ONLINE.value,
     State.ASKING.value,
-    State.DRAFT.value
+    State.DRAFT.value,
 ]
 
 
@@ -33,7 +37,7 @@ async def help_command(update: telegram.Update, context: CallbackContext) -> any
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
     await update.message.reply_text('Please choose:',
-                                    reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS))
+                                    reply_markup=mytelegram.get_keyboard_for_res_list(DEFAULT_ACCEPTED_STATES))
 
 
 async def callback_query_handler(update: telegram.Update, context: CallbackContext) -> any:
@@ -45,10 +49,15 @@ async def callback_query_handler(update: telegram.Update, context: CallbackConte
     if data == "reservations":
         await query.edit_message_text(
             text="Please choose:",
-            reply_markup=mytelegram.get_keyboard_for_res_list(ACCEPT_DEFAULT_RESERVATIONS)
+            reply_markup=mytelegram.get_keyboard_for_res_list(DEFAULT_ACCEPTED_STATES)
         )
     elif data.isdigit():
         await develop_specific_reservations(update, context)
+    elif data == "display_all_res":
+        await query.edit_message_text(
+            text="Please choose:",
+            reply_markup=mytelegram.get_keyboard_for_res_list(EXTENDED_ACCEPTED_STATES, displaying_all_res=True)
+        )
     else:
         await query.edit_message_text(text="Not implemented yet. Please contact @eliorpap to report this issue.")
 
