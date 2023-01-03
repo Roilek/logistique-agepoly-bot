@@ -2,6 +2,7 @@ import enum
 import time
 import copy
 
+import pytz
 import requests
 import telegram
 import datetime
@@ -15,8 +16,7 @@ truffe_cache = {}
 
 MARKDOWN_VERSION = 2
 TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
-TRUFFE_CACHE_STALE = 60 # seconds
-
+TRUFFE_CACHE_STALE = 60  # seconds
 
 STATE_MAPPING = {
     '0_draft': 'en brouillon ⚠️',
@@ -68,7 +68,7 @@ def _remove_external_difference(res_list: list[dict]) -> list[dict]:
 
 def _shift_time(date: str) -> str:
     """Shift a date to the current time zone"""
-    return (datetime.datetime.fromisoformat(date) + datetime.timedelta(hours=1)).isoformat()
+    return datetime.datetime.fromisoformat(date).isoformat()
 
 
 def _manage_time_shift(res_list: list[dict[str, str]]) -> list[dict]:
@@ -84,19 +84,29 @@ def _sort_by_date(res_list: list[dict]) -> list[dict]:
     return sorted(res_list, key=lambda res: res['start_date'])
 
 
+def _extend_agreement(res_list: list[dict]) -> list[dict]:
+    """Add the agreement field to the reservations"""
+    for res in res_list:
+        res['agreement'] = get_agreement_url_from_pk(res['pk'])
+    return res_list
+
+
 def _get_date(date: str) -> str:
     """Returns a string from a date in the format day/month"""
-    return datetime.datetime.fromisoformat(date).strftime("%d/%m")
+    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+        pytz.timezone('Europe/Zurich')).strftime("%d/%m")
 
 
 def _get_time(date: str) -> str:
     """Returns a string from a date in the format hour:minutes"""
-    return datetime.datetime.fromisoformat(date).strftime("%H:%M")
+    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+        pytz.timezone('Europe/Zurich')).strftime("%H:%M")
 
 
 def _get_datetime(date: str) -> str:
     """Returns a string from a date in the format day/month hour:minutes"""
-    return datetime.datetime.fromisoformat(date).strftime("%d/%m %H:%M")
+    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+        pytz.timezone('Europe/Zurich')).strftime("%d/%m %H:%M")
 
 
 def _get_json_from_truffe() -> any:
@@ -117,13 +127,16 @@ def _get_json_from_truffe() -> any:
     return copy.deepcopy(truffe_cache)
 
 
-def get_reservations(states: list = DEFAULT_ACCEPTED_STATES, aggregate_external: bool = True,
-                     standardize_dates: bool = True) -> list[dict]:
+def get_reservations(states: list = DEFAULT_ACCEPTED_STATES,
+                     aggregate_external: bool = True,
+                     standardize_dates: bool = True,
+                     extend_agreement: bool = True) -> list[dict]:
     """Returns a list of all the reservations with one of the given states"""
     reservations = _get_json_from_truffe()['supplyreservations']
     reservations = _remove_external_difference(reservations) if aggregate_external else reservations
     reservations = _manage_time_shift(reservations) if standardize_dates else reservations
     reservations = _sort_by_date(reservations)
+    reservations = _extend_agreement(reservations) if extend_agreement else reservations
     return list(filter(lambda res: res['state'] in states, reservations))
 
 
@@ -176,10 +189,9 @@ def get_formatted_reservation_relevant_info_from_pk(pk: int) -> str:
     return formatted_info
 
 
-def get_agreement_url_from_pk(pk: int) -> str:
-    """Returns the link to the agreement of a reservation from its pk"""
-    return f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"
-
-
 def get_reservation_page_url_from_pk(pk: int) -> str:
     return f"{TRUFFE_PATH}supplyreservation/{pk}/"
+
+
+def get_agreement_url_from_pk(pk: int) -> str:
+    return f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"

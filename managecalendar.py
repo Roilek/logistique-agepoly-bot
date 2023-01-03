@@ -54,7 +54,7 @@ def add_events_to_calendar(events: list, calendar=get_calendar()) -> None:
 def update_calendar(reservations: list[dict]) -> None:
     """Update the Google Calendar with the events from Truffe."""
     # create events
-    events = [create_event(reservation['title'], truffe.get_agreement_url_from_pk(reservation['pk']),
+    events = [create_event(reservation['title'], reservation['agreement'],
                            reservation['start_date'],
                            ) for reservation in reservations]
     # Create the calendar once and use it for all events
@@ -75,7 +75,7 @@ def delete_all_events() -> None:
 
 
 def hard_refresh(reservations: list[dict]):
-    """Delete all events from the Google Calendar and add all events from Truffe."""
+    """Delete all events from the calendar and add the new ones."""
     delete_all_events()
     update_calendar(reservations)
     return

@@ -36,7 +36,7 @@ async def get_reservations(update: telegram.Update, context: CallbackContext) ->
 async def update_calendar(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /calendar is issued."""
     managecalendar.hard_refresh(truffe.get_reservations())
-    await update.message.reply_text('Calendar!')
+    await update.message.reply_text('Le calendrier a été mis à jour! 📅.')
     return
 
 
