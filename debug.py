@@ -17,5 +17,6 @@ def save_truffe_to_JSON():
         json.dump(truffe._get_json_from_truffe(), f, indent=4)
 
 
-create_debug_folder_if_needed()
-save_truffe_to_JSON()
+if __name__ == '__main__':
+    create_debug_folder_if_needed()
+    save_truffe_to_JSON()

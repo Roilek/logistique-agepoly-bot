@@ -10,19 +10,13 @@ import datetime
 from env import get_environment_variables
 
 TRUFFE_TOKEN = get_environment_variables()['TRUFFE_TOKEN']
-
-last_update = None
-truffe_cache = {}
-
-MARKDOWN_VERSION = 2
 TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
 TRUFFE_CACHE_STALE = 60  # seconds
 
-STATE_MAPPING = {
-    '0_draft': 'en brouillon ⚠️',
-    '1_asking': 'en cours de validation ⚠️',
-    '2_online': 'validée ✅',
-}
+MARKDOWN_VERSION = 2
+
+last_update = None
+truffe_cache = {}
 
 
 # Enum of states as str
@@ -55,6 +49,12 @@ EXTENDED_ACCEPTED_STATES = [
     State.ASKING.value,
     State.DRAFT.value,
 ]
+
+STATE_MAPPING = {
+    '0_draft': 'en brouillon ⚠️',
+    '1_asking': 'en cours de validation ⚠️',
+    '2_online': 'validée ✅',
+}
 
 
 def _remove_external_difference(res_list: list[dict]) -> list[dict]:
@@ -117,7 +117,7 @@ def _get_json_from_truffe() -> any:
     if last_update is None or last_update + TRUFFE_CACHE_STALE < time.time():
         infos = ['asking_unit_name', 'contact_telegram', 'start_date', 'end_date', 'contact_phone', 'reason', 'remarks',
                  'agreement']
-        url = "https://truffe2.agepoly.ch/logistics/api/supplyreservations?" + '&'.join(infos)
+        url = f"{TRUFFE_PATH}/api/supplyreservations?{'&'.join(infos)}"
 
         headers = {"Accept": "application/json", "Authorization": "Bearer " + TRUFFE_TOKEN}
         reservations = requests.get(url, headers=headers)

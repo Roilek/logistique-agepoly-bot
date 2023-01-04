@@ -4,7 +4,6 @@ from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQ
 from env import get_environment_variables
 
 import truffe
-from truffe import State
 import mytelegram
 import managecalendar
 
