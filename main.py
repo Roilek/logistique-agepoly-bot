@@ -83,6 +83,7 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
 
 def main():
     """Start the bot."""
+    print("Going live!")
     # Create application
     application = Application.builder().token(TOKEN).build()
 
