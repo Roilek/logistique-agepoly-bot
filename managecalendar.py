@@ -63,7 +63,7 @@ def add_events_to_calendar(events: list, calendar: any = get_calendar()) -> bool
         for event in events:
             event = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
             events_ids.append(event['id'])
-            print(f"Event created: {event.get('htmlLink')}")
+            print(f"Event created: {event.get('summary')}")
         # Write events ids to a file
         with open('events_ids.txt', 'w') as file:
             file.write(json.dumps(events_ids))
