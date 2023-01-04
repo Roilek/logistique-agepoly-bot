@@ -8,10 +8,9 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
 from env import get_environment_variables
-import truffe
 
 CALENDAR_ID = get_environment_variables()['CALENDAR_ID']
-PATH = "credentials.json"
+GSERVICE_CREDENTIALS = get_environment_variables()['GSERVICE_CREDENTIALS']
 
 TIMEZONE = 'Europe/Zurich'
 EVENT_LOCATION = "Boutique de l'AGEPoly, sur l'Esplanade"
@@ -22,8 +21,7 @@ def get_calendar() -> any:
     """Connect to the Google Calendar API using a service account."""
     # Try to connect the service account
     try:
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(PATH,
-                                                                       ['https://www.googleapis.com/auth/calendar'])
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(GSERVICE_CREDENTIALS, ['https://www.googleapis.com/auth/calendar'])
         http_auth = credentials.authorize(httplib2.Http())
         service = build('calendar', 'v3', http=http_auth)
         print("Connected to the Google Calendar API.")
@@ -145,9 +143,14 @@ def delete_all_events() -> bool:
         except FileNotFoundError:
             events_ids = []
         # Delete events
-        for id in events_ids:
-            calendar.events().delete(calendarId=CALENDAR_ID, eventId=id).execute()
-            print(f"Event with id {id} deleted from the calendar.")
+        for event_id in events_ids:
+            # Attempt to delete the event
+            try:
+                calendar.events().delete(calendarId=CALENDAR_ID, eventId=event_id).execute()
+                print(f"Event {event_id} deleted.")
+            except Exception as e:
+                print(f"Failed to delete event {event_id}.")
+                print(e)
         # Remove events_ids file
         os.remove('events_ids.txt')
         print("All events deleted from the calendar.")

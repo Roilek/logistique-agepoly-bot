@@ -2,7 +2,6 @@
 .idea/
 __pycache__/
 debug/
-credentials.json
 tests-calendar.py
 tests.py
 events_ids.txt

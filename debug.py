@@ -2,6 +2,7 @@ import json
 
 import truffe
 
+# Use only for debugging
 
 def create_debug_folder_if_needed():
     """Creates the debug folder if it doesn't exist"""

@@ -1,3 +1,4 @@
+import ast
 import os
 
 from dotenv import load_dotenv
@@ -12,4 +13,5 @@ def get_environment_variables() -> dict[str, str]:
         'TOKEN': os.environ.get('TOKEN'),
         'TRUFFE_TOKEN': os.environ.get('TRUFFE_TOKEN'),
         'CALENDAR_ID': os.environ.get('CALENDAR_ID'),
+        'GSERVICE_CREDENTIALS': ast.literal_eval(os.environ.get('GSERVICE_CREDENTIALS')),
     }
