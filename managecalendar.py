@@ -25,9 +25,9 @@ def _get_calendar() -> any:
     try:
         credentials = ServiceAccountCredentials.from_json_keyfile_dict(GSERVICE_CREDENTIALS, ['https://www.googleapis.com/auth/calendar'])
         http_auth = credentials.authorize(httplib2.Http())
-        service = build('calendar', 'v3', http=http_auth)
+        calendar = build('calendar', 'v3', http=http_auth)
         print("Connected to the Google Calendar API.")
-        return service
+        return calendar
     except Exception as e:
         print("Failed to connect to the Google Calendar API.")
         print(e)

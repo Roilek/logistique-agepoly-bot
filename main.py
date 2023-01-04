@@ -13,6 +13,8 @@ ENV = get_env_variables()['ENV']
 HEROKU_PATH = get_env_variables()['HEROKU_PATH']
 TOKEN = get_env_variables()['TOKEN']
 
+RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
+
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
@@ -31,8 +33,8 @@ async def help_command(update: telegram.Update, context: CallbackContext) -> any
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
-    await update.message.reply_text('Please choose:',
-                                    reply_markup=mytelegram.get_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES))
+    keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES, 0)
+    await update.message.reply_text(f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     return
 
 
@@ -63,17 +65,21 @@ async def callback_query_handler(update: telegram.Update, context: CallbackConte
     data = query.data
 
     if data == "reservations":
-        await query.edit_message_text(
-            text="Please choose:",
-            reply_markup=mytelegram.get_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES)
-        )
+        keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES, 0)
+        await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
+    elif data[0:5] == "page_":
+        state = data[5:8]
+        state_list = truffe.DEFAULT_ACCEPTED_STATES if state == "def" else truffe.EXTENDED_ACCEPTED_STATES
+        page = int(data[9:])
+        keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(state_list, page, displaying_all_res=(state == "all"))
+        await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     elif data.isdigit():
         await develop_specific_reservations(update, context)
-    elif data == "display_all_res":
-        await query.edit_message_text(
-            text="Please choose:",
-            reply_markup=mytelegram.get_keyboard_for_res_list(truffe.EXTENDED_ACCEPTED_STATES, displaying_all_res=True)
-        )
+    # elif data == "display_all_res":
+    #     await query.edit_message_text(
+    #         text=RESERVATION_MENU_MESSAGE,
+    #         reply_markup=mytelegram.get_multipage_keyboard_for_res_list(truffe.EXTENDED_ACCEPTED_STATES, 0, displaying_all_res=True)
+    #     )
     else:
         await query.edit_message_text(text="Not implemented yet. Please contact @eliorpap to report this issue.")
     return
@@ -121,5 +127,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print(HEROKU_PATH + TOKEN)
     main()
