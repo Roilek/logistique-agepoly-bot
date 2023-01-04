@@ -97,7 +97,7 @@ def main():
     application.add_handler(CommandHandler('calendar', update_calendar))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
-
+    print(HEROKU_PATH + TOKEN)
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
         application.run_polling()
