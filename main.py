@@ -99,13 +99,13 @@ def main():
     application.add_handler(CommandHandler('calendar', update_calendar))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
-    time.sleep(5)
+
     print(HEROKU_PATH + TOKEN)
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
         application.run_polling()
     elif os.environ.get('ENV') == 'PROD':
-        application.run_webhook(listen="0.0.0.0",
+        application.run_webhook(listen=HEROKU_PATH + TOKEN,
                                 port=int(PORT),
                                 url_path=TOKEN)
         application.bot.setWebhook(HEROKU_PATH + TOKEN)
