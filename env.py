@@ -8,6 +8,7 @@ def get_environment_variables() -> dict[str, str]:
     load_dotenv()
     return {
         'ENV': os.getenv('ENV'),
+        'HEROKU_PATH': os.getenv('HEROKU_PATH'),
         'TOKEN': os.environ.get('TOKEN'),
         'TRUFFE_TOKEN': os.environ.get('TRUFFE_TOKEN'),
         'CALENDAR_ID': os.environ.get('CALENDAR_ID'),

@@ -10,8 +10,9 @@ import mytelegram
 import managecalendar
 
 PORT = int(os.environ.get('PORT', 5000))
-TOKEN = get_environment_variables()['TOKEN']
 ENV = get_environment_variables()['ENV']
+HEROKU_PATH = get_environment_variables()['HEROKU_PATH']
+TOKEN = get_environment_variables()['TOKEN']
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
@@ -100,7 +101,7 @@ def main():
         application.run_webhook(listen="0.0.0.0",
                                 port=int(PORT),
                                 url_path=TOKEN)
-        application.bot.setWebhook('https://yourherokuappname.herokuapp.com/' + TOKEN)
+        application.bot.setWebhook(HEROKU_PATH + TOKEN)
     return
 
 
