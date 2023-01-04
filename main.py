@@ -91,6 +91,7 @@ def main():
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
+    print("Bot starting...")
     application.run_polling()
     return
 
