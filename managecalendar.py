@@ -1,5 +1,7 @@
 import datetime
 import json
+import os
+
 import httplib2
 
 from googleapiclient.discovery import build
@@ -18,14 +20,18 @@ BOOKED_TIME = 60  # minutes
 
 def get_calendar() -> any:
     """Connect to the Google Calendar API using a service account."""
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(
-        json.load(open(PATH)),
-        scopes=['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events']
-    )
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-    calendar = build(serviceName='calendar', version='v3', http=http)
-    return calendar
+    # Try to connect the service account
+    try:
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(PATH,
+                                                                       ['https://www.googleapis.com/auth/calendar'])
+        http_auth = credentials.authorize(httplib2.Http())
+        service = build('calendar', 'v3', http=http_auth)
+        print("Connected to the Google Calendar API.")
+        return service
+    except Exception as e:
+        print("Failed to connect to the Google Calendar API.")
+        print(e)
+        return None
 
 
 def create_event(title: str, description: str, start: str, location: str = EVENT_LOCATION,
@@ -49,21 +55,26 @@ def create_event(title: str, description: str, start: str, location: str = EVENT
     return event
 
 
-def add_events_to_calendar(events: list, calendar=get_calendar()) -> None:
+def add_events_to_calendar(events: list, calendar: any = get_calendar()) -> bool:
     """Add events to the Google Calendar."""
-    events_ids = []
-    for event in events:
-        inserted = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
-        events_ids.append(inserted['id'])
-        print(f"Event {event['summary']} added to the calendar.")
-    # Save event ids to a file
-    with open('events_ids.txt', 'w') as file:
-        file.write(json.dumps(events_ids))
-    return
+    if calendar is not None:
+        # Add events to the calendar
+        events_ids = []
+        for event in events:
+            event = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
+            events_ids.append(event['id'])
+            print(f"Event created: {event.get('htmlLink')}")
+        # Write events ids to a file
+        with open('events_ids.txt', 'w') as file:
+            file.write(json.dumps(events_ids))
+        print("All events added to the calendar.")
+        return True
+    else:
+        return False
 
 
-def update_calendar_individual_res(reservations: list[dict]) -> None:
-    """Add events to the Google Calendar."""
+def update_calendar_individual_res(reservations: list[dict]) -> bool:
+    """[DEPRECATED] Add events to the Google Calendar."""
     # Prêts
     events = [create_event("Prêt " + reservation['asking_unit_name'], reservation['agreement'],
                            reservation['start_date'],
@@ -74,9 +85,8 @@ def update_calendar_individual_res(reservations: list[dict]) -> None:
                             ) for reservation in reservations]
     # Create the calendar once and use it for all events
     calendar = get_calendar()
-    # add events to the calendar
-    add_events_to_calendar(events, calendar)
-    return
+    # Add events to the calendar
+    return add_events_to_calendar(events, calendar)
 
 
 def remove_minutes(date: str) -> str:
@@ -114,7 +124,7 @@ def create_groupe(reservations: list[dict], is_start_date: bool) -> list[dict]:
     return events
 
 
-def update_calendar_grouped(reservations: list[dict]) -> None:
+def update_calendar_grouped(reservations: list[dict]) -> bool:
     """Add events to the Google Calendar."""
     # Prêts
     events = create_groupe(reservations, True)
@@ -123,30 +133,31 @@ def update_calendar_grouped(reservations: list[dict]) -> None:
     # Create the calendar once and use it for all events
     calendar = get_calendar()
     # Add events to the calendar
-    add_events_to_calendar(events, calendar)
-    return
+    return add_events_to_calendar(events, calendar)
 
 
-def delete_all_events() -> None:
+def delete_all_events() -> bool:
     """Delete all events from the Google Calendar."""
     calendar = get_calendar()
-    try:
-        events_ids = json.load(open('events_ids.txt'))
-    except FileNotFoundError:
-        events_ids = []
-    # Delete events
-    for id in events_ids:
-        calendar.events().delete(calendarId=CALENDAR_ID, eventId=id).execute()
-        print(f"Event with id {id} deleted from the calendar.")
-    # Write back an empty list of events ids
-    with open('events_ids.txt', 'w') as file:
-        file.write(json.dumps([]))
-    print("All events deleted from the calendar.")
-    return
+    if calendar is not None:
+        try:
+            events_ids = json.load(open('events_ids.txt'))
+        except FileNotFoundError:
+            events_ids = []
+        # Delete events
+        for id in events_ids:
+            calendar.events().delete(calendarId=CALENDAR_ID, eventId=id).execute()
+            print(f"Event with id {id} deleted from the calendar.")
+        # Remove events_ids file
+        os.remove('events_ids.txt')
+        print("All events deleted from the calendar.")
+        return True
+    else:
+        return False
 
 
-def hard_refresh(reservations: list[dict]):
+def hard_refresh(reservations: list[dict]) -> bool:
     """Delete all events from the calendar and add the new ones."""
-    delete_all_events()
-    update_calendar_grouped(reservations)
-    return
+    done = delete_all_events()
+    done &= update_calendar_grouped(reservations)
+    return done

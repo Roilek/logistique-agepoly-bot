@@ -38,8 +38,11 @@ async def get_reservations(update: telegram.Update, context: CallbackContext) ->
 
 async def update_calendar(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /calendar is issued."""
-    managecalendar.hard_refresh(truffe.get_reservations())
-    await update.message.reply_text('Le calendrier a été mis à jour! 📅.')
+    done = managecalendar.hard_refresh(truffe.get_reservations())
+    if done:
+        await update.message.reply_text('Le calendrier a été mis à jour! 📅')
+    else:
+        await update.message.reply_text('Erreur lors de la mise à jour du calendrier. 😢')
     return
 
 
