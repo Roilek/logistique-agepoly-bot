@@ -7,10 +7,12 @@ import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
-from env import get_environment_variables
+import env
+from env import get_env_variables
 
-CALENDAR_ID = get_environment_variables()['CALENDAR_ID']
-GSERVICE_CREDENTIALS = get_environment_variables()['GSERVICE_CREDENTIALS']
+ENV = get_env_variables()['ENV']
+CALENDAR_ID = get_env_variables()['CALENDAR_ID']
+GSERVICE_CREDENTIALS = get_env_variables()['GSERVICE_CREDENTIALS']
 
 TIMEZONE = 'Europe/Zurich'
 EVENT_LOCATION = "Boutique de l'AGEPoly, sur l'Esplanade"
@@ -62,9 +64,8 @@ def add_events_to_calendar(events: list, calendar: any = get_calendar()) -> bool
             event = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
             events_ids.append(event['id'])
             print(f"Event created: {event.get('summary')}")
-        # Write events ids to a file
-        with open('events_ids.txt', 'w') as file:
-            file.write(json.dumps(events_ids))
+        # Set events_if to the environment variable
+        env.store_env_variable('EVENTS', events_ids)
         print("All events added to the calendar.")
         return True
     else:
@@ -139,7 +140,7 @@ def delete_all_events() -> bool:
     calendar = get_calendar()
     if calendar is not None:
         try:
-            events_ids = json.load(open('events_ids.txt'))
+            events_ids = env.get_env_variables()['EVENTS']
         except FileNotFoundError:
             events_ids = []
         # Delete events
@@ -151,8 +152,8 @@ def delete_all_events() -> bool:
             except Exception as e:
                 print(f"Failed to delete event {event_id}.")
                 print(e)
-        # Remove events_ids file
-        os.remove('events_ids.txt')
+        # Remove events_if from the environment variable
+        env.store_env_variable('EVENTS', [])
         print("All events deleted from the calendar.")
         return True
     else:

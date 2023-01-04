@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 
-def get_environment_variables() -> dict[str, str]:
+def get_env_variables() -> dict[str, str]:
     """Get environment variables from .env file."""
     load_dotenv()
     return {
@@ -14,4 +14,12 @@ def get_environment_variables() -> dict[str, str]:
         'TRUFFE_TOKEN': os.environ.get('TRUFFE_TOKEN'),
         'CALENDAR_ID': os.environ.get('CALENDAR_ID'),
         'GSERVICE_CREDENTIALS': ast.literal_eval(os.environ.get('GSERVICE_CREDENTIALS')),
+        'EVENTS': ast.literal_eval(os.environ.get('EVENTS')),
     }
+
+
+def store_env_variable(variable: str, value: any) -> None:
+    """Store an environment variable in .env file."""
+    os.environ[variable] = str(value)
+    # with open('.env', 'a') as f:
+    #     f.write(f'{variable}="{value}"\n')

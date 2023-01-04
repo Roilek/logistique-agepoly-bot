@@ -4,4 +4,3 @@ __pycache__/
 debug/
 tests-calendar.py
 tests.py
-events_ids.txt

@@ -6,12 +6,12 @@ from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQ
 import managecalendar
 import mytelegram
 import truffe
-from env import get_environment_variables
+from env import get_env_variables
 
 PORT = int(os.environ.get('PORT', 5000))
-ENV = get_environment_variables()['ENV']
-HEROKU_PATH = get_environment_variables()['HEROKU_PATH']
-TOKEN = get_environment_variables()['TOKEN']
+ENV = get_env_variables()['ENV']
+HEROKU_PATH = get_env_variables()['HEROKU_PATH']
+TOKEN = get_env_variables()['TOKEN']
 
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:

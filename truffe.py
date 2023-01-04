@@ -7,9 +7,9 @@ import requests
 import telegram
 import datetime
 
-from env import get_environment_variables
+from env import get_env_variables
 
-TRUFFE_TOKEN = get_environment_variables()['TRUFFE_TOKEN']
+TRUFFE_TOKEN = get_env_variables()['TRUFFE_TOKEN']
 TRUFFE_PATH = "https://truffe2.agepoly.ch/logistics/"
 TRUFFE_CACHE_STALE = 60  # seconds
 
