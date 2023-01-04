@@ -106,11 +106,11 @@ def main():
     elif os.environ.get('ENV') == 'PROD':
         application.run_webhook(listen="0.0.0.0",
                                 port=int(PORT),
-                                webhook_url=HEROKU_PATH+TOKEN)
+                                webhook_url=HEROKU_PATH,
+                                secret_token="tapontapon")
     return
 
 
 if __name__ == '__main__':
-
     print(HEROKU_PATH + TOKEN)
     main()
