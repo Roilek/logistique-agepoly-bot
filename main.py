@@ -16,6 +16,7 @@ ENV = get_environment_variables()['ENV']
 HEROKU_PATH = get_environment_variables()['HEROKU_PATH']
 TOKEN = get_environment_variables()['TOKEN']
 
+
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
     text = "Hello! I'm the Logistic's helper bot."
