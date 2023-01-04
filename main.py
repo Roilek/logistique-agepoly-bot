@@ -37,12 +37,22 @@ async def get_reservations(update: telegram.Update, context: CallbackContext) ->
 
 
 async def update_calendar(update: telegram.Update, context: CallbackContext) -> any:
-    """Send a message when the command /calendar is issued."""
-    done = managecalendar.hard_refresh(truffe.get_reservations())
+    """Executed when the command /calendar is issued."""
+    done = managecalendar.refresh_calendar(truffe.get_reservations())
     if done:
         await update.message.reply_text('Le calendrier a été mis à jour! 📅')
     else:
         await update.message.reply_text('Erreur lors de la mise à jour du calendrier. 😢')
+    return
+
+
+async def clear_calendar(update: telegram.Update, context: CallbackContext) -> any:
+    """Executed when the command /clearcalendar is issued."""
+    done = managecalendar.clear_calendar()
+    if done:
+        await update.message.reply_text('Le calendrier a été vidé! 📅')
+    else:
+        await update.message.reply_text('Erreur lors du vidage du calendrier. 😢')
     return
 
 
@@ -95,6 +105,7 @@ def main():
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(CommandHandler('reservations', get_reservations))
     application.add_handler(CommandHandler('calendar', update_calendar))
+    application.add_handler(CommandHandler('clearcalendar', clear_calendar))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 

@@ -19,7 +19,7 @@ EVENT_LOCATION = "Boutique de l'AGEPoly, sur l'Esplanade"
 BOOKED_TIME = 60  # minutes
 
 
-def get_calendar() -> any:
+def _get_calendar() -> any:
     """Connect to the Google Calendar API using a service account."""
     # Try to connect the service account
     try:
@@ -34,8 +34,8 @@ def get_calendar() -> any:
         return None
 
 
-def create_event(title: str, description: str, start: str, location: str = EVENT_LOCATION,
-                 timezone: str = TIMEZONE) -> dict:
+def _create_event(title: str, description: str, start: str, location: str = EVENT_LOCATION,
+                  timezone: str = TIMEZONE) -> dict:
     """Create an event in the Google Calendar."""
     time_end_event = datetime.datetime.fromisoformat(start) + datetime.timedelta(minutes=BOOKED_TIME)
     time_end_event = time_end_event.isoformat()
@@ -55,7 +55,7 @@ def create_event(title: str, description: str, start: str, location: str = EVENT
     return event
 
 
-def add_events_to_calendar(events: list, calendar: any = get_calendar()) -> bool:
+def _add_events_to_calendar(events: list, calendar: any = _get_calendar()) -> bool:
     """Add events to the Google Calendar."""
     if calendar is not None:
         # Add events to the calendar
@@ -72,35 +72,35 @@ def add_events_to_calendar(events: list, calendar: any = get_calendar()) -> bool
         return False
 
 
-def update_calendar_individual_res(reservations: list[dict]) -> bool:
+def _update_calendar_individual_res(reservations: list[dict]) -> bool:
     """[DEPRECATED] Add events to the Google Calendar."""
     # Prêts
-    events = [create_event("Prêt " + reservation['asking_unit_name'], reservation['agreement'],
-                           reservation['start_date'],
-                           ) for reservation in reservations]
-    # Rendus
-    events += [create_event("Rendu " + reservation['asking_unit_name'], reservation['agreement'],
-                            reservation['end_date'],
+    events = [_create_event("Prêt " + reservation['asking_unit_name'], reservation['agreement'],
+                            reservation['start_date'],
                             ) for reservation in reservations]
+    # Rendus
+    events += [_create_event("Rendu " + reservation['asking_unit_name'], reservation['agreement'],
+                             reservation['end_date'],
+                             ) for reservation in reservations]
     # Create the calendar once and use it for all events
-    calendar = get_calendar()
+    calendar = _get_calendar()
     # Add events to the calendar
-    return add_events_to_calendar(events, calendar)
+    return _add_events_to_calendar(events, calendar)
 
 
-def remove_minutes(date: str) -> str:
+def _remove_minutes(date: str) -> str:
     """Remove minutes from a date."""
     return datetime.datetime.fromisoformat(date).replace(minute=0, second=0).isoformat()
 
 
-def create_groupe(reservations: list[dict], is_start_date: bool) -> list[dict]:
+def _create_groupe(reservations: list[dict], is_start_date: bool) -> list[dict]:
     """Create a timeslot group in the Google Calendar."""
     events = []
     date_type = "start_date" if is_start_date else "end_date"
     # Group reservations by date
     grouped_reservations = {}
     for reservation in reservations:
-        event_date = remove_minutes(reservation[date_type])
+        event_date = _remove_minutes(reservation[date_type])
         if event_date not in grouped_reservations:
             grouped_reservations[event_date] = []
         grouped_reservations[event_date].append(reservation)
@@ -118,26 +118,26 @@ def create_groupe(reservations: list[dict], is_start_date: bool) -> list[dict]:
                 "\t" + reservation['contact_telegram']
             ])
             description += '\n\n'
-        event = create_event(title, description, date)
+        event = _create_event(title, description, date)
         events.append(event)
     return events
 
 
-def update_calendar_grouped(reservations: list[dict]) -> bool:
+def _update_calendar_grouped(reservations: list[dict]) -> bool:
     """Add events to the Google Calendar."""
     # Prêts
-    events = create_groupe(reservations, True)
+    events = _create_groupe(reservations, True)
     # Rendus
-    events += create_groupe(reservations, False)
+    events += _create_groupe(reservations, False)
     # Create the calendar once and use it for all events
-    calendar = get_calendar()
+    calendar = _get_calendar()
     # Add events to the calendar
-    return add_events_to_calendar(events, calendar)
+    return _add_events_to_calendar(events, calendar)
 
 
-def delete_all_events() -> bool:
+def clear_calendar() -> bool:
     """Delete all events from the Google Calendar."""
-    calendar = get_calendar()
+    calendar = _get_calendar()
     if calendar is not None:
         try:
             events_ids = env.get_env_variables()['EVENTS']
@@ -160,8 +160,8 @@ def delete_all_events() -> bool:
         return False
 
 
-def hard_refresh(reservations: list[dict]) -> bool:
+def refresh_calendar(reservations: list[dict]) -> bool:
     """Delete all events from the calendar and add the new ones."""
-    done = delete_all_events()
-    done &= update_calendar_grouped(reservations)
+    done = clear_calendar()
+    done &= _update_calendar_grouped(reservations)
     return done

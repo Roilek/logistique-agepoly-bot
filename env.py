@@ -21,5 +21,6 @@ def get_env_variables() -> dict[str, str]:
 def store_env_variable(variable: str, value: any) -> None:
     """Store an environment variable in .env file."""
     os.environ[variable] = str(value)
+    print(f"Stored {variable} in env. Value : {value}.")
     # with open('.env', 'a') as f:
     #     f.write(f'{variable}="{value}"\n')
