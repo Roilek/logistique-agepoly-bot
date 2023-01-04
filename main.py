@@ -100,7 +100,6 @@ def main():
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
-    print(HEROKU_PATH + TOKEN)
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
         application.run_polling()
@@ -113,4 +112,5 @@ def main():
 
 
 if __name__ == '__main__':
+    print(HEROKU_PATH + TOKEN)
     main()
