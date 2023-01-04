@@ -1,3 +1,5 @@
+import time
+
 import telegram
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
 
@@ -97,6 +99,7 @@ def main():
     application.add_handler(CommandHandler('calendar', update_calendar))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
+    time.sleep(5)
     print(HEROKU_PATH + TOKEN)
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
