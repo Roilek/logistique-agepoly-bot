@@ -104,10 +104,10 @@ def main():
     if os.environ.get('ENV') == 'TEST':
         application.run_polling()
     elif os.environ.get('ENV') == 'PROD':
+        application.bot.setWebhook(HEROKU_PATH + TOKEN)
         application.run_webhook(listen="0.0.0.0",
                                 port=int(PORT),
                                 url_path=HEROKU_PATH+TOKEN)
-        application.bot.setWebhook(HEROKU_PATH + TOKEN)
     return
 
 
