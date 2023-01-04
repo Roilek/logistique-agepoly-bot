@@ -106,7 +106,7 @@ def main():
     elif os.environ.get('ENV') == 'PROD':
         application.run_webhook(listen=HEROKU_PATH + TOKEN,
                                 port=int(PORT),
-                                url_path=TOKEN)
+                                url_path=HEROKU_PATH + TOKEN)
         application.bot.setWebhook(HEROKU_PATH + TOKEN)
     return
 
