@@ -16,7 +16,6 @@ ENV = get_environment_variables()['ENV']
 HEROKU_PATH = get_environment_variables()['HEROKU_PATH']
 TOKEN = get_environment_variables()['TOKEN']
 
-
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
     text = "Hello! I'm the Logistic's helper bot."
@@ -105,9 +104,9 @@ def main():
     if os.environ.get('ENV') == 'TEST':
         application.run_polling()
     elif os.environ.get('ENV') == 'PROD':
-        application.run_webhook(listen=HEROKU_PATH + TOKEN,
+        application.run_webhook(listen="0.0.0.0",
                                 port=int(PORT),
-                                url_path=HEROKU_PATH + TOKEN)
+                                url_path=HEROKU_PATH+TOKEN)
         application.bot.setWebhook(HEROKU_PATH + TOKEN)
     return
 
