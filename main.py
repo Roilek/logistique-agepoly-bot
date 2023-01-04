@@ -1,14 +1,17 @@
 import telegram
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
 
+import os
+
 from env import get_environment_variables
 
 import truffe
 import mytelegram
 import managecalendar
 
+PORT = int(os.environ.get('PORT', 5000))
 TOKEN = get_environment_variables()['TOKEN']
-
+ENV = get_environment_variables()['ENV']
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
@@ -91,7 +94,13 @@ def main():
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
     print("Bot starting...")
-    application.run_polling()
+    if os.environ.get('ENV') == 'TEST':
+        application.run_polling()
+    elif os.environ.get('ENV') == 'PROD':
+        application.run_webhook(listen="0.0.0.0",
+                                port=int(PORT),
+                                url_path=TOKEN)
+        application.bot.setWebhook('https://yourherokuappname.herokuapp.com/' + TOKEN)
     return
 
 
