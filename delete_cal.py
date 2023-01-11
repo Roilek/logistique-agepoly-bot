@@ -22,4 +22,4 @@ def get_position() -> None:
 
 if __name__ == '__main__':
     get_position()
-    remove_events(0)
+    remove_events(40)

@@ -117,7 +117,7 @@ def _get_json_from_truffe() -> any:
     if last_update is None or last_update + TRUFFE_CACHE_STALE < time.time():
         infos = ['asking_unit_name', 'contact_telegram', 'start_date', 'end_date', 'contact_phone', 'reason', 'remarks',
                  'agreement']
-        url = f"{TRUFFE_PATH}/api/supplyreservations?{'&'.join(infos)}"
+        url = f"{TRUFFE_PATH}api/supplyreservations?{'&'.join(infos)}"
 
         headers = {"Accept": "application/json", "Authorization": "Bearer " + TRUFFE_TOKEN}
         reservations = requests.get(url, headers=headers)
@@ -195,3 +195,16 @@ def get_reservation_page_url_from_pk(pk: int) -> str:
 
 def get_agreement_url_from_pk(pk: int) -> str:
     return f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"
+
+
+def get_agreement_pdf_from_pk(pk: int):
+    url = f"{TRUFFE_PATH}api/loanagreement/{pk}/pdf/"
+    print(url)
+
+    headers = {"Accept": "application/json", "Authorization": "Bearer " + TRUFFE_TOKEN}
+    document = requests.get(url, headers=headers)
+    print(headers)
+    # save document as text
+    with open("agreement.html", "wb") as f:
+        f.write(document.content)
+    return document.content

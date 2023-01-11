@@ -1,3 +1,4 @@
+import io
 import os
 
 import telegram
@@ -33,7 +34,7 @@ async def help_command(update: telegram.Update, context: CallbackContext) -> any
 
 async def get_reservations(update: telegram.Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
-    keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES, 0)
+    keyboard, page = mytelegram.get_reservations_keyboard(truffe.DEFAULT_ACCEPTED_STATES, 0)
     await update.message.reply_text(f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     return
 
@@ -65,21 +66,25 @@ async def callback_query_handler(update: telegram.Update, context: CallbackConte
     data = query.data
 
     if data == "reservations":
-        keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(truffe.DEFAULT_ACCEPTED_STATES, 0)
+        keyboard, page = mytelegram.get_reservations_keyboard(truffe.DEFAULT_ACCEPTED_STATES, 0)
         await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     elif data[0:5] == "page_":
         state = data[5:8]
         state_list = truffe.DEFAULT_ACCEPTED_STATES if state == "def" else truffe.EXTENDED_ACCEPTED_STATES
         page = int(data[9:])
-        keyboard, page = mytelegram.get_multipage_keyboard_for_res_list(state_list, page, displaying_all_res=(state == "all"))
+        keyboard, page = mytelegram.get_reservations_keyboard(state_list, page, displaying_all_res=(state == "all"))
         await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     elif data.isdigit():
         await develop_specific_reservations(update, context)
-    # elif data == "display_all_res":
-    #     await query.edit_message_text(
-    #         text=RESERVATION_MENU_MESSAGE,
-    #         reply_markup=mytelegram.get_multipage_keyboard_for_res_list(truffe.EXTENDED_ACCEPTED_STATES, 0, displaying_all_res=True)
-    #     )
+    elif data[:10] == "agreement_":
+        pk = int(data[10:])
+        document = io.BytesIO(truffe.get_agreement_pdf_from_pk(pk))
+        # create an `io.BytesIO` object with the file content
+        file_bytes = b'Hello, World!'
+        file = io.BytesIO(file_bytes)
+
+        # send the file
+        await context.bot.send_document(chat_id=query.message.chat_id, document=document, filename='agreement.pdf')
     else:
         await query.edit_message_text(text="Not implemented yet. Please contact @eliorpap to report this issue.")
     return
@@ -96,7 +101,7 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
     text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
 
     await query.edit_message_text(text=text, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
-                                  reply_markup=mytelegram.get_reservation_keyboard(pk))
+                                  reply_markup=mytelegram.get_one_res_keyboard(pk))
     return
 
 
