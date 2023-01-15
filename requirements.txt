@@ -1,4 +1,3 @@
-python-telegram-bot~=20.0
 python-telegram-bot[webhooks]~=20.0
 
 python-dotenv~=0.21.0
@@ -9,3 +8,5 @@ PyAutoGUI~=0.9.53
 httplib2~=0.21.0
 oauth2client~=4.1.3
 google-api-python-client~=2.70.0
+
+pymongo~=4.3.3

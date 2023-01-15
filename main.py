@@ -4,6 +4,7 @@ import os
 import telegram
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
 
+import database
 import managecalendar
 import mytelegram
 import truffe
@@ -19,6 +20,11 @@ RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
 
 async def start(update: telegram.Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
+    user_id = update.message.from_user.id
+    if not database.user_exists(user_id):
+        database.register_user(user_id, update.effective_user.first_name, update.effective_user.last_name,
+                               update.effective_user.username)
+
     text = "Hello! I'm the Logistic's helper bot."
     text += "\n"
     text += "send me /reservations to get the list of your reservations."
@@ -132,4 +138,5 @@ def main():
 
 
 if __name__ == '__main__':
+    database.setup()
     main()
