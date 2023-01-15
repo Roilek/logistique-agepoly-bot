@@ -1,4 +1,3 @@
-import asyncio
 import io
 import os
 
@@ -142,5 +141,5 @@ if __name__ == '__main__':
     database.setup()
     # If in prod mode, we refresh the calendar every time the bot restarts
     if os.environ.get('ENV') == 'PROD':
-        asyncio.create_task(managecalendar.refresh_calendar(truffe.get_reservations()))
+        managecalendar.refresh_calendar(truffe.get_reservations())
     main()
