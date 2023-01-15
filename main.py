@@ -139,4 +139,7 @@ def main():
 
 if __name__ == '__main__':
     database.setup()
+    # If in prod mode, we refresh the calendar every time the bot restarts
+    if os.environ.get('ENV') == 'PROD':
+        managecalendar.refresh_calendar(truffe.get_reservations())
     main()

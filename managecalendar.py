@@ -7,6 +7,7 @@ import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
+import database
 import env
 from env import get_env_variables
 
@@ -64,8 +65,7 @@ def _add_events_to_calendar(events: list, calendar: any = _get_calendar()) -> bo
             event = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
             events_ids.append(event['id'])
             print(f"Event created: {event.get('summary')}")
-        # Set events_if to the environment variable
-        env.store_env_variable('EVENTS', events_ids)
+        database.add_event_ids(events_ids)
         print("All events added to the calendar.")
         return True
     else:
@@ -140,7 +140,7 @@ def clear_calendar() -> bool:
     calendar = _get_calendar()
     if calendar is not None:
         try:
-            events_ids = env.get_env_variables()['EVENTS']
+            events_ids = database.get_event_ids()
         except FileNotFoundError:
             events_ids = []
         # Delete events
@@ -152,9 +152,8 @@ def clear_calendar() -> bool:
             except Exception as e:
                 print(f"Failed to delete event {event_id}.")
                 print(e)
-        # Remove events_if from the environment variable
-        env.store_env_variable('EVENTS', [])
         print("All events deleted from the calendar.")
+        database.clear_event_ids()
         return True
     else:
         return False
