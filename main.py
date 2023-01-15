@@ -1,3 +1,4 @@
+import asyncio
 import io
 import os
 
@@ -111,7 +112,7 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
     return
 
 
-def main():
+def main() -> None:
     """Start the bot."""
     print("Going live!")
     # Create application
@@ -134,12 +135,10 @@ def main():
                                 port=int(PORT),
                                 webhook_url=HEROKU_PATH,
                                 secret_token="tapontapon")
+    managecalendar.refresh_calendar(truffe.get_reservations())
     return
 
 
 if __name__ == '__main__':
     database.setup()
-    # If in prod mode, we refresh the calendar every time the bot restarts
-    if os.environ.get('ENV') == 'PROD':
-        managecalendar.refresh_calendar(truffe.get_reservations())
     main()
