@@ -70,6 +70,14 @@ def add_event_ids(event_ids: list[str]) -> None:
     return
 
 
+def add_event_id(event_id: str) -> None:
+    """Add an event ID."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[EVENTS_COLLECTION_NAME]
+    collection.insert_one({"_id": event_id})
+    return
+
+
 def clear_event_ids() -> None:
     """Clear the event IDs."""
     db = mongo_client[DATABASE_NAME]

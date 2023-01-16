@@ -60,12 +60,10 @@ def _add_events_to_calendar(events: list, calendar: any = _get_calendar()) -> bo
     """Add events to the Google Calendar."""
     if calendar is not None:
         # Add events to the calendar
-        events_ids = []
         for event in events:
             event = calendar.events().insert(calendarId=CALENDAR_ID, body=event).execute()
-            events_ids.append(event['id'])
+            database.add_event_id(event['id'])
             print(f"Event created: {event.get('summary')}")
-        database.add_event_ids(events_ids)
         print("All events added to the calendar.")
         return True
     else:
@@ -159,7 +157,7 @@ def clear_calendar() -> bool:
         return False
 
 
-def refresh_calendar(reservations: list[dict]) -> bool:
+async def refresh_calendar(reservations: list[dict]) -> bool:
     """Delete all events from the calendar and add the new ones."""
     done = clear_calendar()
     done &= _update_calendar_grouped(reservations)

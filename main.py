@@ -141,4 +141,5 @@ def main() -> None:
 
 if __name__ == '__main__':
     database.setup()
+    # asyncio.run(managecalendar.refresh_calendar(truffe.get_reservations()))
     main()
