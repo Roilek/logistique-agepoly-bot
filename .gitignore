@@ -4,3 +4,5 @@ __pycache__/
 debug/
 tests-calendar.py
 tests.py
+.DS_Store
+tests.txt
