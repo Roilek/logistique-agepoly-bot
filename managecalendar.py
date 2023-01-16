@@ -9,6 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 import database
 import env
+import truffe
 from env import get_env_variables
 
 ENV = get_env_variables()['ENV']

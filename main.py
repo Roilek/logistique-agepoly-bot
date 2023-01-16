@@ -1,6 +1,6 @@
-import asyncio
 import io
 import os
+import argparse
 
 import telegram
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
@@ -114,6 +114,14 @@ async def develop_specific_reservations(update: telegram.Update, context: Callba
 
 def main() -> None:
     """Start the bot."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("function", nargs='?', help="The function to execute", choices=["refresh_calendar"])
+    args = parser.parse_args()
+
+    if args.function == "refresh_calendar":
+        managecalendar.refresh_calendar(truffe.get_reservations())
+        return
+
     print("Going live!")
     # Create application
     application = Application.builder().token(TOKEN).build()
@@ -135,6 +143,13 @@ def main() -> None:
                                 port=int(PORT),
                                 webhook_url=HEROKU_PATH,
                                 secret_token="tapontapon")
+    return
+
+
+def refresh_calendar() -> None:
+    """Refresh the calendar."""
+    print("Refreshing calendar...")
+    managecalendar.refresh_calendar(truffe.get_reservations())
     return
 
 
