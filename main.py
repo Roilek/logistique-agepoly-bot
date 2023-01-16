@@ -135,7 +135,6 @@ def main() -> None:
                                 port=int(PORT),
                                 webhook_url=HEROKU_PATH,
                                 secret_token="tapontapon")
-    managecalendar.refresh_calendar(truffe.get_reservations())
     return
 
 

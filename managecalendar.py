@@ -157,7 +157,7 @@ def clear_calendar() -> bool:
         return False
 
 
-async def refresh_calendar(reservations: list[dict]) -> bool:
+def refresh_calendar(reservations: list[dict]) -> bool:
     """Delete all events from the calendar and add the new ones."""
     done = clear_calendar()
     done &= _update_calendar_grouped(reservations)
