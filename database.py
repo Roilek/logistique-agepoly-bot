@@ -1,10 +1,10 @@
+import datetime
+
 import pymongo
 from dotenv import load_dotenv
 
-import datetime
-
-from accred import Accred
 import env
+from accred import Accred
 
 # Constants
 
@@ -13,6 +13,7 @@ DEFAULT_TIME_ACCRED = 365 * 1.25
 DATABASE_NAME = "agepolog-db"
 USERS_COLLECTION_NAME = "users"
 EVENTS_COLLECTION_NAME = "events"
+MESSAGES_COLLECTION_NAME = "messages"
 
 mongo_client: pymongo.MongoClient = None
 
@@ -139,5 +140,37 @@ def clear_event_ids() -> None:
     """Clear the event IDs."""
     db = mongo_client[DATABASE_NAME]
     collection = db[EVENTS_COLLECTION_NAME]
+    collection.delete_many({})
+    return
+
+
+# --- MESSAGES ---
+
+def add_message(original_id: int, copy_id: int, chat_id: int, text: str, reply_to_message_id: int = None) -> None:
+    """Push a message to the database."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[MESSAGES_COLLECTION_NAME]
+    message = {
+        "original_id": original_id,
+        "copy_id": copy_id,
+        "chat_id": chat_id,
+        "reply_to_message_id": reply_to_message_id,
+        "text": text,
+    }
+    collection.insert_one(message)
+    return
+
+
+def get_original_message(copy_id: int) -> dict:
+    """Return the original message."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[MESSAGES_COLLECTION_NAME]
+    return collection.find_one({"copy_id": copy_id})
+
+
+def clear_messages() -> None:
+    """Clear the messages."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[MESSAGES_COLLECTION_NAME]
     collection.delete_many({})
     return

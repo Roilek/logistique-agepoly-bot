@@ -111,13 +111,31 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
     # If the message is an answer to a contact message, send it back to the user
     message = update.message
     reply_to = message.reply_to_message
-    if reply_to is not None and reply_to.forward_from is not None:
-        await message.copy(chat_id=reply_to.forward_from.id)
-    # Forwards user's message to the team
-    elif update.message is not None and update.effective_chat.id != SUPPORT_GROUP_ID:
-        message_id = await message.copy(chat_id=SUPPORT_GROUP_ID)
-        await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=message_id.message_id,
-                                            text=f"Message de: {message.from_user.first_name}\n\n" + message.text)
+
+    if message.chat_id == SUPPORT_GROUP_ID:
+        original_message = database.get_original_message(reply_to.id) if reply_to is not None else None
+        if original_message is not None:
+            copy_message_id = (await message.copy(chat_id=original_message["chat_id"],
+                                                  reply_to_message_id=original_message["original_id"])).message_id
+            database.add_message(message.id, copy_message_id, message.chat_id, message.text, reply_to.id)
+        elif message.chat_id != SUPPORT_GROUP_ID:
+            await message.reply_text(
+                "Je n'ai pas retrouvé le message original et ne peux donc pas transmettre la réponse :(")
+    else:
+        original_message_id = None
+        if reply_to is not None:
+            original_message_id = database.get_original_message(reply_to.id)["original_id"]
+        if message.text is not None:
+            copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
+                                                  reply_to_message_id=original_message_id)).message_id
+            if not reply_to:
+                text = f"Message de {message.from_user.first_name}\n\n{message.text}"
+                await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
+                                                    text=text)
+            database.add_message(message.id, copy_message_id, message.chat_id, message.text, reply_to.id if reply_to else None)
+        else:
+            new_message_id = (await message.forward(chat_id=SUPPORT_GROUP_ID)).id
+            database.add_message(message.id, new_message_id, message.chat_id, None, reply_to.id if reply_to else None)
     return
 
 
