@@ -311,7 +311,7 @@ def main() -> None:
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
-    application.add_handler(MessageHandler(~filters.ALL & (~filters.StatusUpdate.ALL), handle_messages))
+    application.add_handler(MessageHandler(filters.ALL & (~filters.StatusUpdate.ALL), handle_messages))
 
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
