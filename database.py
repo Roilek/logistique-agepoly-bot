@@ -14,6 +14,7 @@ DATABASE_NAME = "agepolog-db"
 USERS_COLLECTION_NAME = "users"
 EVENTS_COLLECTION_NAME = "events"
 MESSAGES_COLLECTION_NAME = "messages"
+UNITS_COLLECTION_NAME = "units"
 
 mongo_client: pymongo.MongoClient = None
 
@@ -106,6 +107,7 @@ def register_user(user_id: int, first_name: str, last_name: str = None, username
         "username": username,
         "accred": Accred.EXTERNAL.value,
         "expires": None,
+        "units": None
     }
     collection.insert_one(user)
     return
@@ -173,4 +175,24 @@ def clear_messages() -> None:
     db = mongo_client[DATABASE_NAME]
     collection = db[MESSAGES_COLLECTION_NAME]
     collection.delete_many({})
+    return
+
+
+# --- UNITS ---
+
+def get_units(user_id: int) -> list[str]:
+    """Return the units of a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    user = collection.find_one({"telegram_id": user_id})
+    if user is None:
+        return []
+    return user["units"]
+
+
+def add_unit(user_id: int, unit: str) -> None:
+    """Add a unit to a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    collection.update_one({"telegram_id": user_id}, {"$push": {"units": unit}})
     return

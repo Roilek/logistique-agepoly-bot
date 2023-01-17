@@ -126,6 +126,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
         if reply_to is not None:
             original_message_id = database.get_original_message(reply_to.id)["original_id"]
         if message.text is not None:
+            # If there is text, we can edit it
             copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
                                                   reply_to_message_id=original_message_id)).message_id
             if not reply_to:
@@ -134,8 +135,15 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
                                                     text=text)
             database.add_message(message.id, copy_message_id, message.chat_id, message.text, reply_to.id if reply_to else None)
         else:
-            new_message_id = (await message.forward(chat_id=SUPPORT_GROUP_ID)).id
-            database.add_message(message.id, new_message_id, message.chat_id, None, reply_to.id if reply_to else None)
+            # If there is no text, we cannot edit it and have to forward the message if we are not replying
+            if original_message_id is not None:
+                copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
+                                                      reply_to_message_id=original_message_id)).message_id
+                database.add_message(message.id, copy_message_id, message.chat_id, None,
+                                     reply_to.id)
+            else:
+                new_message_id = (await message.forward(chat_id=SUPPORT_GROUP_ID)).id
+                database.add_message(message.id, new_message_id, message.chat_id, None)
     return
 
 
