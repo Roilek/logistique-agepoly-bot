@@ -55,6 +55,16 @@ async def start(update: Update, context: CallbackContext) -> any:
     return
 
 
+async def forget(update: Update, context: CallbackContext) -> any:
+    """Executed when the command /forget is issued."""
+    if not can_use_command(update, Accred.EXTERNAL):
+        await warn_cannot_use_command(update, Accred.EXTERNAL)
+        return
+    database.forget_user(update.effective_user.id)
+    await update.message.reply_text("You have been forgotten. You can now use /start to get registered again.")
+    return
+
+
 async def help_command(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /help is issued."""
     if not can_use_command(update, Accred.EXTERNAL):
@@ -227,6 +237,7 @@ def main() -> None:
 
     # Add handlers
     application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('forget', forget))
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(CommandHandler('contact', contact_command))
     application.add_handler(CommandHandler('join', join))

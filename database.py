@@ -29,6 +29,14 @@ def setup() -> None:
 
 # --- USERS ---
 
+def forget_user(user_id: int) -> None:
+    """Remove a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    collection.delete_one({"telegram_id": user_id})
+    return
+
+
 def get_accred(user_id: int) -> int:
     """Return the accred of a user."""
     db = mongo_client[DATABASE_NAME]
