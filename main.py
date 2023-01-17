@@ -2,7 +2,7 @@ import argparse
 import io
 import os
 
-from telegram import Update, constants, CallbackQuery, Message
+from telegram import Update, constants, CallbackQuery
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler, filters, MessageHandler
 
 import database
@@ -114,9 +114,10 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
     if reply_to is not None and reply_to.forward_from is not None:
         await message.copy(chat_id=reply_to.forward_from.id)
     # Forwards user's message to the team
-    elif update.message is not None:
-        await context.bot.forward_message(chat_id=SUPPORT_GROUP_ID, from_chat_id=update.effective_chat.id,
-                                                message_id=update.message.message_id, api_kwargs={"test": "mytest"})
+    elif update.message is not None and update.effective_chat.id != SUPPORT_GROUP_ID:
+        message_id = await message.copy(chat_id=SUPPORT_GROUP_ID)
+        await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=message_id.message_id,
+                                            text=f"Message de: {message.from_user.first_name}\n\n" + message.text)
     return
 
 
