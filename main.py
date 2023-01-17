@@ -2,11 +2,9 @@ import io
 import os
 import argparse
 
-import telegram
 from telegram import Update, constants
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
 
-import authentication
 import database
 import managecalendar
 import mytelegram
@@ -23,7 +21,7 @@ RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
 
 
 async def can_use_command(update: Update, accred: Accred, context: CallbackContext = None) -> bool:
-    can_use = authentication.has_privilege(update.effective_user.id, accred)
+    can_use = database.has_privilege(update.effective_user.id, accred)
     text = ""
     if can_use == -1:
         text += "You are not registered. Please use /start to get registered.\n"

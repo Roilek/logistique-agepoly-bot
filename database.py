@@ -25,14 +25,14 @@ def setup() -> None:
 
 # --- USERS ---
 
-def get_accred(user_id: int) -> int:
+def has_privilege(user_id: int, privilege: Accred) -> int:
     """Return the accred of the user. Returns -1 if user could not be found."""
     db = mongo_client[DATABASE_NAME]
     collection = db[USERS_COLLECTION_NAME]
     user = collection.find_one({"telegram_id": user_id})
     if user is None:
         return -1
-    return user["accred"]
+    return Accred.from_value(user["accred"]) >= privilege
 
 
 def user_exists(user_id: int) -> bool:
