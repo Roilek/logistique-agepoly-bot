@@ -1,6 +1,7 @@
 import pymongo
 from dotenv import load_dotenv
 
+from accred import Accred
 import env
 
 # Constants
@@ -24,11 +25,14 @@ def setup() -> None:
 
 # --- USERS ---
 
-def is_admin(user_id: int) -> bool:
-    """Return True if the user is authenticated."""
+def get_accred(user_id: int) -> int:
+    """Return the accred of the user. Returns -1 if user could not be found."""
     db = mongo_client[DATABASE_NAME]
     collection = db[USERS_COLLECTION_NAME]
-    return collection.find_one({"telegram_id": user_id, "is_admin": True}) is not None
+    user = collection.find_one({"telegram_id": user_id})
+    if user is None:
+        return -1
+    return user["accred"]
 
 
 def user_exists(user_id: int) -> bool:
@@ -47,7 +51,7 @@ def register_user(user_id: int, first_name: str, last_name: str = None, username
         "first_name": first_name,
         "last_name": last_name,
         "username": username,
-        "is_admin": False,
+        "accred": Accred.EXTERNAL.value
     }
     collection.insert_one(user)
     return
