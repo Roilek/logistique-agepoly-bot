@@ -19,6 +19,8 @@ TOKEN = get_env_variables()['TOKEN']
 
 RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
 
+DEFAULT_CONTACT = "logistique@agepoly.ch"
+
 commands = {
     "start": {"description": "Point d'entrée du bot, indispensable pour l'utiliser", "accred": Accred.NONE},
     "forget": {"description": "Supprimer toutes les informations me concernant", "accred": Accred.EXTERNAL},
@@ -31,7 +33,6 @@ commands = {
 }
 
 
-
 def can_use_command(update: Update, accred: Accred) -> bool:
     """Check if the user can use the command."""
     return database.has_privilege(update.effective_user.id, accred) > 0
@@ -42,11 +43,11 @@ async def warn_cannot_use_command(update: Update, accred: Accred, context: Callb
     can_use = database.has_privilege(update.effective_user.id, accred)
     text = ""
     if can_use == -1:
-        text += "You are not registered. Please use /start to get registered.\n"
-        text += "If it is still not working, please contact us via logistique@agepoly.ch."
+        text += "Tu n'est pas enregistré. Merci d'utiliser /start pour t'enregistrer\n"
+        text += f"Si cela ne fonctionne toujours pas, tu peux nous contacter via {DEFAULT_CONTACT}."
     if not can_use:
-        text += "You don't have the right (anymore ?) to use this command.\n"
-        text += "If you think this is an error, please contact us using /contact."
+        text += "Tu n'as pas le droit d'utiliser cette commande.\n"
+        text += "Si tu penses qu'il s'agit d'une erreur, merci de nous contacter en utiliser /contact."
     if text != "":
         if context is None:
             await update.message.reply_text(text)
@@ -94,7 +95,7 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
     if not can_use_command(update, commands["contact"]["accred"]):
         await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
-    await update.message.reply_text("Not implemented yet. Contact @eliorpap to report this issue.")
+    await update.message.reply_text(f"Not implemented yet. Contact {DEFAULT_CONTACT} to report this issue.")
     return
 
 

@@ -5,6 +5,7 @@ from telegram.ext import CallbackContext
 import database
 import truffe
 from accred import Accred
+from main import DEFAULT_CONTACT
 
 MAX_RES_PER_PAGE = 10
 
@@ -72,7 +73,7 @@ async def send_join_request(update: Update, context: CallbackContext, accred_req
         [telegram.InlineKeyboardButton(f"Accred {user.first_name} as {accred_req}", callback_data="_".join(["ok", str(accred_req.value), str(user.id)]))],
         [telegram.InlineKeyboardButton("Deny", callback_data="_".join(["no", str(accred_req.value), str(user.id)]))]
     ]
-    ids = database.get_ids_by_accred(accred_validator.value)
+    ids = database.get_users_by_accred_extended(accred_validator.value)
     if ids:
         for chat_id in ids:
             await context.bot.send_message(
@@ -86,5 +87,5 @@ async def send_join_request(update: Update, context: CallbackContext, accred_req
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Aucun administrateur n'est enregistré pour le moment. "
-                 "Merci d'envoyer un email à logistique@agepoly.ch pour que cela soit réglé."
+                 f"Merci d'envoyer un email à {DEFAULT_CONTACT} pour que cela soit réglé."
         )

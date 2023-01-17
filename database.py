@@ -73,12 +73,18 @@ def expire_accreds() -> None:
     return
 
 
-def get_ids_by_accred(accred: int) -> list[int]:
+def get_users_by_accred(accred: int) -> list[int]:
     """Return a list of all users with the given accred."""
     db = mongo_client[DATABASE_NAME]
     collection = db[USERS_COLLECTION_NAME]
     return [user["telegram_id"] for user in collection.find({"accred": accred})]
 
+
+def get_users_by_accred_extended(accred: int) -> list[int]:
+    """Return a list of all users with the given accred or higher."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    return [user["telegram_id"] for user in collection.find({"accred": {"$gte": accred}})]
 
 def user_exists(user_id: int) -> bool:
     """Return True if the user exists."""
