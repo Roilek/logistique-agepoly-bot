@@ -3,6 +3,7 @@ from enum import Enum
 
 class Accred(Enum):
     """Accreditation status of a user."""
+    NONE = -1
     EXTERNAL = 0
     INTERNAL = 1
     TEAM_MEMBER = 2
@@ -10,6 +11,8 @@ class Accred(Enum):
     ADMIN = 4
 
     def __str__(self) -> str:
+        if self == Accred.NONE:
+            return ""
         info = {
             Accred.EXTERNAL: "Externe",
             Accred.INTERNAL: "Equipe ou CdD",

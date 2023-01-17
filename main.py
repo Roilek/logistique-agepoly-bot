@@ -19,6 +19,18 @@ TOKEN = get_env_variables()['TOKEN']
 
 RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
 
+commands = {
+    "start": {"description": "Point d'entrée du bot, indispensable pour l'utiliser", "accred": Accred.NONE},
+    "forget": {"description": "Supprimer toutes les informations me concernant", "accred": Accred.EXTERNAL},
+    "help": {"description": "Voir tout ce que je peux faire avec ce bot", "accred": Accred.EXTERNAL},
+    "contact": {"description": "Contacter l'Équipe Logistique", "accred": Accred.EXTERNAL},
+    "join": {"description": "Obtenir une nouvelle accréditation", "accred": Accred.EXTERNAL},
+    "reservations": {"description": "Voir la liste des reservations", "accred": Accred.TEAM_MEMBER},
+    "calendar": {"description": "Actualiser le calendrier", "accred": Accred.TEAM_LEADER},
+    "clearcalendar": {"description": "Vider le calendrier", "accred": Accred.TEAM_LEADER},
+}
+
+
 
 def can_use_command(update: Update, accred: Accred) -> bool:
     """Check if the user can use the command."""
@@ -50,15 +62,15 @@ async def start(update: Update, context: CallbackContext) -> any:
         database.register_user(user_id, update.effective_user.first_name, update.effective_user.last_name,
                                update.effective_user.username)
     text = "Hello! I'm the Logistic's helper bot.\n"
-    text += "send me /reservations to get the list of your reservations."
+    text += "Send me /help to know what you can do!"
     await update.message.reply_text(text)
     return
 
 
 async def forget(update: Update, context: CallbackContext) -> any:
     """Executed when the command /forget is issued."""
-    if not can_use_command(update, Accred.EXTERNAL):
-        await warn_cannot_use_command(update, Accred.EXTERNAL)
+    if not can_use_command(update, commands["forget"]["accred"]):
+        await warn_cannot_use_command(update, commands["forget"]["accred"])
         return
     database.forget_user(update.effective_user.id)
     await update.message.reply_text("You have been forgotten. You can now use /start to get registered again.")
@@ -67,17 +79,20 @@ async def forget(update: Update, context: CallbackContext) -> any:
 
 async def help_command(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /help is issued."""
-    if not can_use_command(update, Accred.EXTERNAL):
-        await warn_cannot_use_command(update, Accred.EXTERNAL)
+    if not can_use_command(update, commands["help"]["accred"]):
+        await warn_cannot_use_command(update, commands["help"]["accred"])
         return
-    await update.message.reply_text('Help!')
+    text = "Here is a list of all the commands you can use:\n"
+    for command in filter(lambda x: can_use_command(update, commands[x]["accred"]), commands):
+        text += f"/{command} - {commands[command]['description']}\n"
+    await update.message.reply_text(text)
     return
 
 
 async def contact_command(update: Update, context: CallbackContext) -> any:
     """Executed when the command /contact is issued."""
-    if not can_use_command(update, Accred.EXTERNAL):
-        await warn_cannot_use_command(update, Accred.EXTERNAL)
+    if not can_use_command(update, commands["contact"]["accred"]):
+        await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
     await update.message.reply_text("Not implemented yet. Contact @eliorpap to report this issue.")
     return
@@ -85,8 +100,8 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
 
 async def join(update: Update, context: CallbackContext) -> any:
     """Executed when the command /join is issued."""
-    if not can_use_command(update, Accred.EXTERNAL):
-        await warn_cannot_use_command(update, Accred.EXTERNAL)
+    if not can_use_command(update, commands["join"]["accred"]):
+        await warn_cannot_use_command(update, commands["join"]["accred"])
         return
     text = "Si tu es un membre d'une équipe ou CdD, tu peux avoir accès à plus de commandes avec ce bot !\n"
     text += "Pour cela il faut cliquer sur le bouton le plus bas qui correspond à ton rôle dans l'AGEPoly. " \
@@ -98,8 +113,8 @@ async def join(update: Update, context: CallbackContext) -> any:
 
 async def get_reservations(update: Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
-    if not can_use_command(update, Accred.TEAM_MEMBER):
-        await warn_cannot_use_command(update, Accred.TEAM_MEMBER)
+    if not can_use_command(update, commands["reservations"]["accred"]):
+        await warn_cannot_use_command(update, commands["reservations"]["accred"])
         return
     keyboard, page = mytelegram.get_reservations_keyboard(truffe.DEFAULT_ACCEPTED_STATES, 0)
     await update.message.reply_text(f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
@@ -108,8 +123,8 @@ async def get_reservations(update: Update, context: CallbackContext) -> any:
 
 async def update_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /calendar is issued."""
-    if not can_use_command(update, Accred.TEAM_LEADER):
-        await warn_cannot_use_command(update, Accred.TEAM_LEADER)
+    if not can_use_command(update, commands["calendar"]["accred"]):
+        await warn_cannot_use_command(update, commands["calendar"]["accred"])
         return
     done = managecalendar.refresh_calendar(truffe.get_reservations())
     if done:
@@ -121,8 +136,8 @@ async def update_calendar(update: Update, context: CallbackContext) -> any:
 
 async def clear_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /clearcalendar is issued."""
-    if not can_use_command(update, Accred.TEAM_LEADER):
-        await warn_cannot_use_command(update, Accred.TEAM_LEADER)
+    if not can_use_command(update, commands["clearcalendar"]["accred"]):
+        await warn_cannot_use_command(update, commands["clearcalendar"]["accred"])
         return
     done = managecalendar.clear_calendar()
     if done:
