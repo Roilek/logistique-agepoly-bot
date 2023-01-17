@@ -1,10 +1,14 @@
 import pymongo
 from dotenv import load_dotenv
 
+import datetime
+
 from accred import Accred
 import env
 
 # Constants
+
+DEFAULT_TIME_ACCRED = 365 * 1.25
 
 DATABASE_NAME = "agepolog-db"
 USERS_COLLECTION_NAME = "users"
@@ -35,6 +39,24 @@ def has_privilege(user_id: int, privilege: Accred) -> int:
     return Accred.from_value(user["accred"]) >= privilege
 
 
+def update_accred(user_id: int, accred: Accred) -> None:
+    """Update the accred of a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    expires = datetime.datetime.now() + datetime.timedelta(days=DEFAULT_TIME_ACCRED)
+    collection.update_one({"telegram_id": user_id}, {"$set": {"accred": accred.value, "expires": expires}})
+    return
+
+
+def expire_accreds() -> None:
+    """Check expiracy of all users and expire if needed."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    now = datetime.datetime.now()
+    collection.update_many({"expires": {"$lt": now}}, {"$set": {"accred": Accred.EXTERNAL.value, "expires": None}})
+    return
+
+
 def user_exists(user_id: int) -> bool:
     """Return True if the user exists."""
     db = mongo_client[DATABASE_NAME]
@@ -51,7 +73,8 @@ def register_user(user_id: int, first_name: str, last_name: str = None, username
         "first_name": first_name,
         "last_name": last_name,
         "username": username,
-        "accred": Accred.EXTERNAL.value
+        "accred": Accred.EXTERNAL.value,
+        "expires": None,
     }
     collection.insert_one(user)
     return

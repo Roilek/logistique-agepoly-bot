@@ -142,11 +142,17 @@ async def develop_specific_reservations(update: Update, context: CallbackContext
 def main() -> None:
     """Start the bot."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("function", nargs='?', help="The function to execute", choices=["refresh_calendar"])
+    parser.add_argument("function",
+                        nargs='?',
+                        help="The function to execute",
+                        choices=["refresh_calendar", "expire_accreds"])
     args = parser.parse_args()
 
     if args.function == "refresh_calendar":
         managecalendar.refresh_calendar(truffe.get_reservations())
+        return
+    elif args.function == "expire_accreds":
+        database.expire_accreds()
         return
 
     print("Going live!")
