@@ -115,7 +115,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
         await message.copy(chat_id=reply_to.forward_from.id)
     # Forwards user's message to the team
     elif update.message is not None:
-        await context.bot.forward_message(chat_id=SUPPORT_GROUP_ID, from_chat_id=update.effective_user.id,
+        await context.bot.forward_message(chat_id=SUPPORT_GROUP_ID, from_chat_id=update.effective_chat.id,
                                                 message_id=update.message.message_id, api_kwargs={"test": "mytest"})
     return
 
