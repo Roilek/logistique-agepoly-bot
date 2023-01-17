@@ -86,6 +86,7 @@ def get_users_by_accred_extended(accred: int) -> list[int]:
     collection = db[USERS_COLLECTION_NAME]
     return [user["telegram_id"] for user in collection.find({"accred": {"$gte": accred}})]
 
+
 def user_exists(user_id: int) -> bool:
     """Return True if the user exists."""
     db = mongo_client[DATABASE_NAME]

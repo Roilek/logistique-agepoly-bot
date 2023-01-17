@@ -2,8 +2,8 @@ import argparse
 import io
 import os
 
-from telegram import Update, constants, CallbackQuery
-from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler
+from telegram import Update, constants, CallbackQuery, Message
+from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler, filters, MessageHandler
 
 import database
 import managecalendar
@@ -16,6 +16,7 @@ PORT = int(os.environ.get('PORT', 5000))
 ENV = get_env_variables()['ENV']
 HEROKU_PATH = get_env_variables()['HEROKU_PATH']
 TOKEN = get_env_variables()['TOKEN']
+SUPPORT_GROUP_ID = get_env_variables()['SUPPORT_GROUP_ID']
 
 RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
 
@@ -95,7 +96,27 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
     if not can_use_command(update, commands["contact"]["accred"]):
         await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
-    await update.message.reply_text(f"Not implemented yet. Contact {DEFAULT_CONTACT} to report this issue.")
+    await update.message.reply_text(
+        f"Envoyez-moi le message que vous voulez, il sera transmis à l'Équipe Logistique qui vous répondra au plus vite !")
+    return
+
+
+async def handle_messages(update: Update, context: CallbackContext) -> any:
+    """Handle messages."""
+    # If the user is not registered, he cannot use the bot
+    if not database.user_exists(update.effective_user.id):
+        await update.message.reply_text(
+            "Il faut être enregistré·e pour pouvoir discuter avec nous ! Merci d'utiliser /start pour t'enregistrer")
+        return
+    # If the message is an answer to a contact message, send it back to the user
+    message = update.message
+    reply_to = message.reply_to_message
+    if reply_to is not None and reply_to.forward_from is not None:
+        await message.copy(chat_id=reply_to.forward_from.id)
+    # Forwards user's message to the team
+    elif update.message is not None:
+        await context.bot.forward_message(chat_id=SUPPORT_GROUP_ID, from_chat_id=update.effective_user.id,
+                                                message_id=update.message.message_id, api_kwargs={"test": "mytest"})
     return
 
 
@@ -262,6 +283,8 @@ def main() -> None:
     application.add_handler(CommandHandler('clearcalendar', clear_calendar))
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
+
+    application.add_handler(MessageHandler(filters.ALL, handle_messages))
 
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
