@@ -10,10 +10,17 @@ class Accred(Enum):
     ADMIN = 4
 
     def __str__(self) -> str:
-        return self.name.lower()
+        info = {
+            Accred.EXTERNAL: "Externe",
+            Accred.INTERNAL: "Equipe ou CdD",
+            Accred.TEAM_MEMBER: "Equipe Logistique",
+            Accred.TEAM_LEADER: "Responsable Logistique",
+            Accred.ADMIN: "Admin"
+        }
+        return info[self]
 
     def __repr__(self) -> str:
-        return self.name.lower()
+        return str(self)
 
     def __int__(self) -> int:
         return self.value
@@ -48,7 +55,11 @@ class Accred(Enum):
             return self.value >= other.value
         return False
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
     @classmethod
     def from_value(cls, value: int) -> "Accred":
         """Return the Accred enum from a value."""
         return cls(value)
+

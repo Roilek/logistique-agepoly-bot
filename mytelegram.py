@@ -1,11 +1,16 @@
 import telegram
+from telegram import Update
+from telegram.ext import CallbackContext
 
+import database
 import truffe
+from accred import Accred
 
 MAX_RES_PER_PAGE = 10
 
 
-def get_reservations_keyboard(states: list, page: int, displaying_all_res: bool = False) -> (telegram.InlineKeyboardMarkup, int):
+def get_reservations_keyboard(states: list, page: int, displaying_all_res: bool = False) -> (
+        telegram.InlineKeyboardMarkup, int):
     """Returns a keyboard with the reservations of the given states, starting at the given page."""
     res_list = truffe.get_res_pk_info(states)
     keyboard = []
@@ -50,3 +55,36 @@ def get_one_res_keyboard(res_pk: int) -> telegram.InlineKeyboardMarkup:
         ]
     ]
     return telegram.InlineKeyboardMarkup(keyboard)
+
+
+def get_join_keyboard(user_id: int) -> telegram.InlineKeyboardMarkup:
+    """Returns a keyboard with the link to join the group"""
+    keyboard = [
+        [telegram.InlineKeyboardButton(str(accred), callback_data="_".join(["ask", str(accred.value), str(user_id)]))]
+        for accred in Accred]
+    return telegram.InlineKeyboardMarkup(keyboard)
+
+
+async def send_join_request(update: Update, context: CallbackContext, accred_req: Accred, accred_validator: Accred) -> None:
+    """Sends a message to the group to ask for the user to join the group"""
+    user = update.effective_user
+    keyboard = [
+        [telegram.InlineKeyboardButton(f"Accred {user.first_name} as {accred_req}", callback_data="_".join(["ok", str(accred_req.value), str(user.id)]))],
+        [telegram.InlineKeyboardButton("Deny", callback_data="_".join(["no", str(accred_req.value), str(user.id)]))]
+    ]
+    ids = database.get_ids_by_accred(accred_validator.value)
+    if ids:
+        for chat_id in ids:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"{user.first_name} ({user.id}) souhaite obtenir le rôle de {accred_req}!\n"
+                     f"Son username est @{user.username}.\n" if user.username else ""
+                     f"Son rôle actuel est {Accred(database.get_accred(user.id))}.\n",
+                reply_markup=telegram.InlineKeyboardMarkup(keyboard)
+            )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Aucun administrateur n'est enregistré pour le moment. "
+                 "Merci d'envoyer un email à logistique@agepoly.ch pour que cela soit réglé."
+        )

@@ -29,14 +29,22 @@ def setup() -> None:
 
 # --- USERS ---
 
-def has_privilege(user_id: int, privilege: Accred) -> int:
-    """Return the accred of the user. Returns -1 if user could not be found."""
+def get_accred(user_id: int) -> int:
+    """Return the accred of a user."""
     db = mongo_client[DATABASE_NAME]
     collection = db[USERS_COLLECTION_NAME]
     user = collection.find_one({"telegram_id": user_id})
     if user is None:
         return -1
-    return Accred.from_value(user["accred"]) >= privilege
+    return user["accred"]
+
+
+def has_privilege(user_id: int, privilege: Accred) -> int:
+    """Return the accred of the user. Returns -1 if user could not be found."""
+    accred = get_accred(user_id)
+    if accred == -1:
+        return -1
+    return Accred(accred) >= privilege
 
 
 def update_accred(user_id: int, accred: Accred) -> None:
@@ -55,6 +63,13 @@ def expire_accreds() -> None:
     now = datetime.datetime.now()
     collection.update_many({"expires": {"$lt": now}}, {"$set": {"accred": Accred.EXTERNAL.value, "expires": None}})
     return
+
+
+def get_ids_by_accred(accred: int) -> list[int]:
+    """Return a list of all users with the given accred."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    return [user["telegram_id"] for user in collection.find({"accred": accred})]
 
 
 def user_exists(user_id: int) -> bool:
