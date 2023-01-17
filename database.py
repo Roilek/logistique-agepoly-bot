@@ -8,7 +8,8 @@ from accred import Accred
 
 # Constants
 
-DEFAULT_TIME_ACCRED = 365 * 1.25
+DEFAULT_TIME_ROLE = 365 * 1.25
+DEFAULT_TIME_UNIT = 365 * 0.5
 
 DATABASE_NAME = "agepolog-db"
 USERS_COLLECTION_NAME = "users"
@@ -61,7 +62,7 @@ def update_accred(user_id: int, accred: Accred) -> None:
     """Update the accred of a user."""
     db = mongo_client[DATABASE_NAME]
     collection = db[USERS_COLLECTION_NAME]
-    expires = datetime.datetime.now() + datetime.timedelta(days=DEFAULT_TIME_ACCRED)
+    expires = datetime.datetime.now() + datetime.timedelta(days=DEFAULT_TIME_ROLE)
     collection.update_one({"telegram_id": user_id}, {"$set": {"accred": accred.value, "expires": expires}})
     return
 
@@ -110,6 +111,25 @@ def register_user(user_id: int, first_name: str, last_name: str = None, username
         "units": None
     }
     collection.insert_one(user)
+    return
+
+
+def get_user_units(user_id: int) -> list[str]:
+    """Return the units of a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    user = collection.find_one({"telegram_id": user_id})
+    if user is None:
+        return []
+    return user["units"]
+
+
+def add_user_unit(user_id: int, unit: int) -> None:
+    """Add a unit to a user."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[USERS_COLLECTION_NAME]
+    expires = datetime.datetime.now() + datetime.timedelta(days=DEFAULT_TIME_UNIT)
+    collection.update_one({"telegram_id": user_id}, {"$push": {"units": {"unit": unit, "expires": expires}}})
     return
 
 
@@ -180,19 +200,18 @@ def clear_messages() -> None:
 
 # --- UNITS ---
 
-def get_units(user_id: int) -> list[str]:
-    """Return the units of a user."""
+def add_unit(name: str) -> int:
+    """Add a unit, set id to last one + 1 and returns the id."""
     db = mongo_client[DATABASE_NAME]
-    collection = db[USERS_COLLECTION_NAME]
-    user = collection.find_one({"telegram_id": user_id})
-    if user is None:
-        return []
-    return user["units"]
-
-
-def add_unit(user_id: int, unit: str) -> None:
-    """Add a unit to a user."""
-    db = mongo_client[DATABASE_NAME]
-    collection = db[USERS_COLLECTION_NAME]
-    collection.update_one({"telegram_id": user_id}, {"$push": {"units": unit}})
-    return
+    collection = db[UNITS_COLLECTION_NAME]
+    last_unit = collection.find_one(sort=[("_id", -1)])
+    if last_unit is None:
+        unit_id = 1
+    else:
+        unit_id = last_unit["_id"] + 1
+    unit = {
+        "_id": unit_id,
+        "name": name,
+    }
+    collection.insert_one(unit)
+    return unit_id

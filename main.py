@@ -44,7 +44,7 @@ async def warn_cannot_use_command(update: Update, accred: Accred, context: Callb
     can_use = database.has_privilege(update.effective_user.id, accred)
     text = ""
     if can_use == -1:
-        text += "Tu n'est pas enregistré. Merci d'utiliser /start pour t'enregistrer\n"
+        text += "Tu n'est pas enregistré·e. Merci d'utiliser /start pour t'enregistrer\n"
         text += f"Si cela ne fonctionne toujours pas, tu peux nous contacter via {DEFAULT_CONTACT}."
     if not can_use:
         text += "Tu n'as pas le droit d'utiliser cette commande.\n"
