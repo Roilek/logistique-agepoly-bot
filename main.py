@@ -57,6 +57,15 @@ async def warn_cannot_use_command(update: Update, accred: Accred, context: Callb
     return
 
 
+async def invalid_command(update: Update, context: CallbackContext) -> any:
+    """Executed when an invalid command is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
+    await update.message.reply_text(
+        "Invalid command. Send me /help to know what you can do! If you think this is an error, please contact us "
+        "using /contact.")
+    return
+
+
 async def start(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
     database.log_command(update.effective_user.id, update.message.text)
@@ -138,7 +147,8 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
                 text = f"Message de {message.from_user.first_name}\n\n{message.text}"
                 await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
                                                     text=text)
-            database.add_message(message.id, copy_message_id, message.chat_id, message.text, reply_to.id if reply_to else None)
+            database.add_message(message.id, copy_message_id, message.chat_id, message.text,
+                                 reply_to.id if reply_to else None)
         else:
             # If there is no text, we cannot edit it and have to forward the message if we are not replying
             if original_message_id is not None:
@@ -323,6 +333,7 @@ def main() -> None:
 
     application.add_handler(CallbackQueryHandler(callback_query_handler))
 
+    application.add_handler(MessageHandler(filters.COMMAND, invalid_command))
     application.add_handler(MessageHandler(filters.ALL & (~filters.StatusUpdate.ALL), handle_messages))
 
     print("Bot starting...")
