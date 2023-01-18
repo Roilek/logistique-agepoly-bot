@@ -17,10 +17,9 @@ def get_reservations_keyboard(states: list, page: int, displaying_all_res: bool 
     keyboard = []
     while len(res_list) <= page * MAX_RES_PER_PAGE:
         page -= 1
-    for res in res_list[page * MAX_RES_PER_PAGE: (page + 1) * MAX_RES_PER_PAGE]:
-        keyboard.append([telegram.InlineKeyboardButton(res[1], callback_data=res[0])])
-
     disp = "all" if displaying_all_res else "def"
+    for res in res_list[page * MAX_RES_PER_PAGE: (page + 1) * MAX_RES_PER_PAGE]:
+        keyboard.append([telegram.InlineKeyboardButton(res[1], callback_data='_'.join([str(res[0]), disp, str(page)]))])
 
     # If we are already displaying all the reservations, we add a button to go back to the default view
     navigation_buttons = []
@@ -41,17 +40,18 @@ def get_reservations_keyboard(states: list, page: int, displaying_all_res: bool 
             telegram.InlineKeyboardButton("➡️", callback_data=f"page_{disp}_{page + 1}")
         )
     keyboard.append(navigation_buttons)
-    return (telegram.InlineKeyboardMarkup(keyboard), page)
+    return telegram.InlineKeyboardMarkup(keyboard), page
 
 
-def get_one_res_keyboard(res_pk: int) -> telegram.InlineKeyboardMarkup:
+def get_one_res_keyboard(res_pk: int, page: int, displaying_all_res: bool) -> telegram.InlineKeyboardMarkup:
     """Returns a keyboard with the reservation page and the loan agreement"""
+    disp = "all" if displaying_all_res else "def"
     keyboard = [
         [
             telegram.InlineKeyboardButton("Page du prêt", url=truffe.get_reservation_page_url_from_pk(res_pk)),
             telegram.InlineKeyboardButton("Convention", url=truffe.get_agreement_url_from_pk(res_pk))],
         [
-            telegram.InlineKeyboardButton("⬅️", callback_data="reservations"),
+            telegram.InlineKeyboardButton("⬅️", callback_data='_'.join(["reservations", disp, str(page)])),
             # telegram.InlineKeyboardButton("Get PDF", callback_data=f"agreement_{res_pk}"),
         ]
     ]

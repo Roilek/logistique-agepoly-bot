@@ -2,7 +2,7 @@ import argparse
 import io
 import os
 
-from telegram import Update, constants, CallbackQuery
+from telegram import Update, constants
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler, filters, MessageHandler
 
 import database
@@ -18,7 +18,7 @@ HEROKU_PATH = get_env_variables()['HEROKU_PATH']
 TOKEN = get_env_variables()['TOKEN']
 SUPPORT_GROUP_ID = get_env_variables()['SUPPORT_GROUP_ID']
 
-RESERVATION_MENU_MESSAGE = "Choisissez une reservation:"
+RESERVATION_MENU_MESSAGE = "Choisissez une reservation :"
 
 DEFAULT_CONTACT = "logistique@agepoly.ch"
 
@@ -215,25 +215,27 @@ async def clear_calendar(update: Update, context: CallbackContext) -> any:
     return
 
 
-async def manage_external_callbacks(update: Update, context: CallbackContext, query: CallbackQuery) -> bool:
+async def manage_external_callbacks(update: Update, context: CallbackContext, args: list[str]) -> bool:
     """Manage the callback queries from the external users."""
-    data = query.data
-    if data[:3] == "ask":
-        if int(data[4]) == Accred.EXTERNAL.value:
+    query = update.callback_query
+    if args[0] == "ask":
+        if int(args[1]) == Accred.EXTERNAL.value:
             await query.edit_message_text("Merci pour ton honnêteté 😉 En tant qu'externes tu peux faire de grandes "
                                           "choses, jette à oeil à /help pour en savoir plus !")
         else:
-            await mytelegram.send_join_request(update, context, Accred(int(data[4])), Accred.TEAM_LEADER)
+            await mytelegram.send_join_request(update, context, Accred(int(args[1])), Accred.TEAM_LEADER)
             await query.edit_message_text("Merci pour ta demande ! Ton rôle sera modéré au plus vite !")
-    elif data[:2] == "ok":
-        requester_id = int(data[5:])
-        database.update_accred(requester_id, Accred(int(data[3])))
+    elif args[0] == "ok":
+        requester_id = int(args[2])
+        database.update_accred(requester_id, Accred(int(args[1])))
         await query.edit_message_text("Le rôle a été modifié !")
         await context.bot.send_message(chat_id=requester_id,
                                        text="Ta demande a été acceptée et ton rôle a été modifié !")
-    elif data[:2] == "no":
-        await context.bot.send_message(chat_id=int(data[5:]),
-                                       text="Ta demande a été refusée. Si tu penses qu'il s'agit d'une erreur tu peux nous contacter avec /contact !")
+    elif args[0] == "no":
+        await context.bot.send_message(chat_id=int(args[2]),
+                                       text=f"Ta demande d'accréditation en tant que {Accred(int(args[1]))} a été "
+                                            f"refusée. Si tu penses qu'il s'agit d'une erreur tu peux nous contacter "
+                                            f"avec /contact !")
         await query.edit_message_text("Le reste inchangé. La personne qui a fait la demande a été prévenue.")
         pass
     else:
@@ -241,25 +243,31 @@ async def manage_external_callbacks(update: Update, context: CallbackContext, qu
     return True
 
 
-async def manage_log_callbacks(update: Update, context: CallbackContext, query: CallbackQuery) -> bool:
+async def manage_log_callbacks(update: Update, context: CallbackContext, args: list[str]) -> bool:
     """Manage the callback queries from the log team."""
-    data = query.data
-    if data == "reservations":
-        keyboard, page = mytelegram.get_reservations_keyboard(truffe.DEFAULT_ACCEPTED_STATES, 0)
-        await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
-    elif data[0:5] == "page_":
-        state = data[5:8]
+    query = update.callback_query
+    if args[0] == "reservations":
+        state = args[1]
         state_list = truffe.DEFAULT_ACCEPTED_STATES if state == "def" else truffe.EXTENDED_ACCEPTED_STATES
-        page = int(data[9:])
+        keyboard, page = mytelegram.get_reservations_keyboard(states=state_list,
+                                                              page=int(args[2]),
+                                                              displaying_all_res=(state == "all"))
+        await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
+    elif args[0] == "page":
+        state = args[1]
+        state_list = truffe.DEFAULT_ACCEPTED_STATES if state == "def" else truffe.EXTENDED_ACCEPTED_STATES
+        page = int(args[2])
         keyboard, page = mytelegram.get_reservations_keyboard(state_list, page, displaying_all_res=(state == "all"))
         await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
-    elif data.isdigit():
-        pk = int(query.data)
+    elif args[0].isdigit():
+        pk = int(args[0])
         text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
         await query.edit_message_text(text=text, parse_mode=constants.ParseMode.MARKDOWN_V2,
-                                      reply_markup=mytelegram.get_one_res_keyboard(pk))
-    elif data[:10] == "agreement_":
-        pk = int(data[10:])
+                                      reply_markup=mytelegram.get_one_res_keyboard(pk,
+                                                                                   page=int(args[2]),
+                                                                                   displaying_all_res=(args[1] == "all")))
+    elif args[0] == "agreement":
+        pk = int(args[1])
         document = io.BytesIO(truffe.get_agreement_pdf_from_pk(pk))
         await context.bot.send_document(chat_id=query.message.chat_id, document=document, filename='agreement.pdf')
     else:
@@ -273,31 +281,17 @@ async def callback_query_handler(update: Update, context: CallbackContext) -> an
     database.log_callback(update.effective_user.id, query.data)
     await query.answer()
 
+    args = query.data.split('_')
     if can_use_command(update, Accred.EXTERNAL):
-        if await manage_external_callbacks(update, context, query):
+        if await manage_external_callbacks(update, context, args):
             return
     if can_use_command(update, Accred.TEAM_MEMBER):
-        if await manage_log_callbacks(update, context, query):
+        if await manage_log_callbacks(update, context, args):
             return
     text = "Cette fonctionnalité n'est pas implémentée ou tu n'as plus les droits pour utiliser ce menu.\n"
     text += "Si tu penses que c'est une erreur, essaie d'acquérir de nouveaux droits avec /join puis contacte " \
             "nous si l'erreur persiste !"
     await query.edit_message_text(text)
-    return
-
-
-async def develop_specific_reservations(update: Update, context: CallbackContext) -> any:
-    """Detects that a button has been pressed and send the corresponding reservation information."""
-    query = update.callback_query
-    # await query.answer()
-
-    pk = int(query.data)
-
-    # Get the reservation description
-    text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
-
-    await query.edit_message_text(text=text, parse_mode=constants.ParseMode.MARKDOWN_V2,
-                                  reply_markup=mytelegram.get_one_res_keyboard(pk))
     return
 
 
