@@ -59,6 +59,7 @@ async def warn_cannot_use_command(update: Update, accred: Accred, context: Callb
 
 async def start(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     user_id = update.message.from_user.id
     if not database.user_exists(user_id):
         database.register_user(user_id, update.effective_user.first_name, update.effective_user.last_name,
@@ -71,6 +72,7 @@ async def start(update: Update, context: CallbackContext) -> any:
 
 async def forget(update: Update, context: CallbackContext) -> any:
     """Executed when the command /forget is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["forget"]["accred"]):
         await warn_cannot_use_command(update, commands["forget"]["accred"])
         return
@@ -81,6 +83,7 @@ async def forget(update: Update, context: CallbackContext) -> any:
 
 async def help_command(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /help is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["help"]["accred"]):
         await warn_cannot_use_command(update, commands["help"]["accred"])
         return
@@ -93,6 +96,7 @@ async def help_command(update: Update, context: CallbackContext) -> any:
 
 async def contact_command(update: Update, context: CallbackContext) -> any:
     """Executed when the command /contact is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["contact"]["accred"]):
         await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
@@ -103,6 +107,7 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
 
 async def handle_messages(update: Update, context: CallbackContext) -> any:
     """Handle messages."""
+    database.log_message(update.effective_user.id, update.message.text)
     # If the user is not registered, he cannot use the bot
     if not database.user_exists(update.effective_user.id):
         await update.message.reply_text(
@@ -149,6 +154,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
 
 async def join(update: Update, context: CallbackContext) -> any:
     """Executed when the command /join is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["join"]["accred"]):
         await warn_cannot_use_command(update, commands["join"]["accred"])
         return
@@ -162,6 +168,7 @@ async def join(update: Update, context: CallbackContext) -> any:
 
 async def get_reservations(update: Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["reservations"]["accred"]):
         await warn_cannot_use_command(update, commands["reservations"]["accred"])
         return
@@ -172,6 +179,7 @@ async def get_reservations(update: Update, context: CallbackContext) -> any:
 
 async def update_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /calendar is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["calendar"]["accred"]):
         await warn_cannot_use_command(update, commands["calendar"]["accred"])
         return
@@ -185,6 +193,7 @@ async def update_calendar(update: Update, context: CallbackContext) -> any:
 
 async def clear_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /clearcalendar is issued."""
+    database.log_command(update.effective_user.id, update.message.text)
     if not can_use_command(update, commands["clearcalendar"]["accred"]):
         await warn_cannot_use_command(update, commands["clearcalendar"]["accred"])
         return
@@ -235,7 +244,10 @@ async def manage_log_callbacks(update: Update, context: CallbackContext, query: 
         keyboard, page = mytelegram.get_reservations_keyboard(state_list, page, displaying_all_res=(state == "all"))
         await query.edit_message_text(text=f"{RESERVATION_MENU_MESSAGE} (page {page + 1})", reply_markup=keyboard)
     elif data.isdigit():
-        await develop_specific_reservations(update, context)
+        pk = int(query.data)
+        text = truffe.get_formatted_reservation_relevant_info_from_pk(pk)
+        await query.edit_message_text(text=text, parse_mode=constants.ParseMode.MARKDOWN_V2,
+                                      reply_markup=mytelegram.get_one_res_keyboard(pk))
     elif data[:10] == "agreement_":
         pk = int(data[10:])
         document = io.BytesIO(truffe.get_agreement_pdf_from_pk(pk))
@@ -247,8 +259,8 @@ async def manage_log_callbacks(update: Update, context: CallbackContext, query: 
 
 async def callback_query_handler(update: Update, context: CallbackContext) -> any:
     """Detects that a button has been pressed and triggers actions accordingly."""
-
     query = update.callback_query
+    database.log_callback(update.effective_user.id, query.data)
     await query.answer()
 
     if can_use_command(update, Accred.EXTERNAL):
@@ -267,7 +279,7 @@ async def callback_query_handler(update: Update, context: CallbackContext) -> an
 async def develop_specific_reservations(update: Update, context: CallbackContext) -> any:
     """Detects that a button has been pressed and send the corresponding reservation information."""
     query = update.callback_query
-    await query.answer()
+    # await query.answer()
 
     pk = int(query.data)
 

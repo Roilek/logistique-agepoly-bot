@@ -16,6 +16,7 @@ USERS_COLLECTION_NAME = "users"
 EVENTS_COLLECTION_NAME = "events"
 MESSAGES_COLLECTION_NAME = "messages"
 UNITS_COLLECTION_NAME = "units"
+LOGS_COLLECTION_NAME = "logs"
 
 mongo_client: pymongo.MongoClient = None
 
@@ -215,3 +216,33 @@ def add_unit(name: str) -> int:
     }
     collection.insert_one(unit)
     return unit_id
+
+
+# --- LOGS ---
+
+def log(user_id: int, text: str, type: str) -> None:
+    """Log content to the db."""
+    db = mongo_client[DATABASE_NAME]
+    collection = db[LOGS_COLLECTION_NAME]
+    log = {
+        "user_id": user_id,
+        "text": text,
+        "type": type
+    }
+    collection.insert_one(log)
+    return
+
+
+def log_message(user_id: int, text: str) -> None:
+    log(user_id, text, "message")
+    return
+
+
+def log_command(user_id: int, text: str) -> None:
+    log(user_id, text, "command")
+    return
+
+
+def log_callback(user_id: int, callback_data: str) -> None:
+    log(user_id, callback_data, "callback")
+    return
