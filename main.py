@@ -44,11 +44,11 @@ async def warn_cannot_use_command(update: Update, accred: Accred, context: Callb
     can_use = database.has_privilege(update.effective_user.id, accred)
     text = ""
     if can_use == -1:
-        text += "Tu n'est pas enregistré·e. Merci d'utiliser /start pour t'enregistrer\n"
+        text += "Tu n'es pas enregistré·e. Merci d'utiliser /start pour t'enregistrer\n"
         text += f"Si cela ne fonctionne toujours pas, tu peux nous contacter via {DEFAULT_CONTACT}."
     if not can_use:
         text += "Tu n'as pas le droit d'utiliser cette commande.\n"
-        text += "Si tu penses qu'il s'agit d'une erreur, merci de nous contacter en utiliser /contact."
+        text += "Si tu penses qu'il s'agit d'une erreur, merci de nous contacter en utilisant /contact."
     if text != "":
         if context is None:
             await update.message.reply_text(text)
@@ -152,10 +152,10 @@ async def join(update: Update, context: CallbackContext) -> any:
     if not can_use_command(update, commands["join"]["accred"]):
         await warn_cannot_use_command(update, commands["join"]["accred"])
         return
-    text = "Si tu es un membre d'une équipe ou CdD, tu peux avoir accès à plus de commandes avec ce bot !\n"
-    text += "Pour cela il faut cliquer sur le bouton le plus bas qui correspond à ton rôle dans l'AGEPoly. " \
+    text = "Si tu es un·e membre d'une équipe ou CdD, tu peux avoir accès à plus de commandes avec ce bot !\n"
+    text += "Pour cela, il faut cliquer sur le bouton le plus bas qui correspond à ton rôle dans l'AGEPoly. " \
             "Ta demande sera ensuite modérée au plus vite !\n"
-    text += "Si tu n'es pas supposé avoir de droits, merci choisir 'Externe' pour ne pas nous spammer 😉\n"
+    text += "Si tu n'es pas supposé·e avoir de droits, merci de choisir 'Externe' pour ne pas nous spammer 😉\n"
     await update.message.reply_text(text, reply_markup=mytelegram.get_join_keyboard(update.effective_user.id))
     return
 
