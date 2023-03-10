@@ -3,6 +3,7 @@ import io
 import os
 
 from telegram import Update, constants
+from telegram.constants import ParseMode
 from telegram.ext import CallbackContext, CommandHandler, Application, CallbackQueryHandler, filters, MessageHandler
 
 import database
@@ -144,9 +145,9 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
             copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
                                                   reply_to_message_id=original_message_id)).message_id
             if not reply_to:
-                text = f"Message de {message.from_user.first_name}\n\n{message.text}"
+                text = f"*{message.from_user.first_name}*  {message.text}"
                 await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
-                                                    text=text)
+                                                    text=text, parse_mode=ParseMode.MARKDOWN)
             database.add_message(message.id, copy_message_id, message.chat_id, message.text,
                                  reply_to.id if reply_to else None)
         else:
