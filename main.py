@@ -145,7 +145,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
             copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
                                                   reply_to_message_id=original_message_id)).message_id
             if not reply_to:
-                text = f"*{message.from_user.first_name}*  {message.text}"
+                text = f"*{message.from_user.first_name}* ({message.from_user.username})\n{message.text}"
                 await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
                                                     text=text, parse_mode=ParseMode.MARKDOWN)
             database.add_message(message.id, copy_message_id, message.chat_id, message.text,
