@@ -179,6 +179,7 @@ def add_message(original_id: int, copy_id: int, chat_id: int, text: str, reply_t
         "chat_id": chat_id,
         "reply_to_message_id": reply_to_message_id,
         "text": text,
+        "date": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
     }
     collection.insert_one(message)
     return
