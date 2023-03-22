@@ -35,9 +35,13 @@ commands = {
 }
 
 
-def is_a_group(update: Update) -> bool:
+async def not_in_group(update: Update) -> bool:
     """Check if the update is a group."""
-    return update.effective_chat.type == constants.CHAT_PRIVATE
+    if update.effective_chat.type == constants.ChatType.PRIVATE:
+        return True
+    else:
+        await update.message.reply_text("Cette commande ne peut être utilisée que dans un échange privé avec le bot.")
+        return False
 
 def can_use_command(update: Update, accred: Accred) -> bool:
     """Check if the user can use the command."""
@@ -74,7 +78,6 @@ async def invalid_command(update: Update, context: CallbackContext) -> any:
 async def start(update: Update, context: CallbackContext) -> any:
     """Send a message when the command /start is issued."""
     database.log_command(update.effective_user.id, update.message.text)
-    #   print(update.message.chat.type)
     user_id = update.message.from_user.id
     if not database.user_exists(user_id):
         database.register_user(user_id, update.effective_user.first_name, update.effective_user.last_name,
@@ -88,6 +91,8 @@ async def start(update: Update, context: CallbackContext) -> any:
 async def forget(update: Update, context: CallbackContext) -> any:
     """Executed when the command /forget is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["forget"]["accred"]):
         await warn_cannot_use_command(update, commands["forget"]["accred"])
         return
@@ -112,6 +117,8 @@ async def help_command(update: Update, context: CallbackContext) -> any:
 async def contact_command(update: Update, context: CallbackContext) -> any:
     """Executed when the command /contact is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["contact"]["accred"]):
         await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
@@ -171,6 +178,8 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
 async def join(update: Update, context: CallbackContext) -> any:
     """Executed when the command /join is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["join"]["accred"]):
         await warn_cannot_use_command(update, commands["join"]["accred"])
         return
@@ -185,6 +194,8 @@ async def join(update: Update, context: CallbackContext) -> any:
 async def get_reservations(update: Update, context: CallbackContext) -> any:
     """Send a list of buttons when the command /reservations is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["reservations"]["accred"]):
         await warn_cannot_use_command(update, commands["reservations"]["accred"])
         return
@@ -196,6 +207,8 @@ async def get_reservations(update: Update, context: CallbackContext) -> any:
 async def update_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /calendar is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["calendar"]["accred"]):
         await warn_cannot_use_command(update, commands["calendar"]["accred"])
         return
@@ -210,6 +223,8 @@ async def update_calendar(update: Update, context: CallbackContext) -> any:
 async def clear_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /clearcalendar is issued."""
     database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
     if not can_use_command(update, commands["clearcalendar"]["accred"]):
         await warn_cannot_use_command(update, commands["clearcalendar"]["accred"])
         return
