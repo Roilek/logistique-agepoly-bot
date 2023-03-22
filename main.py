@@ -35,6 +35,10 @@ commands = {
 }
 
 
+def is_a_group(update: Update) -> bool:
+    """Check if the update is a group."""
+    return update.effective_chat.type == constants.CHAT_PRIVATE
+
 def can_use_command(update: Update, accred: Accred) -> bool:
     """Check if the user can use the command."""
     return database.has_privilege(update.effective_user.id, accred) > 0
