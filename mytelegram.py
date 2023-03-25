@@ -89,3 +89,11 @@ async def send_join_request(update: Update, context: CallbackContext, accred_req
             text="Aucun administrateur n'est enregistré pour le moment. "
                  f"Merci d'envoyer un email à {DEFAULT_CONTACT} pour que cela soit réglé."
         )
+
+
+def get_close_ticket_keyboard(update: Update) -> telegram.InlineKeyboardMarkup:
+    """Returns a keyboard with the link to join the group"""
+    keyboard = [
+        [telegram.InlineKeyboardButton("Question résolue !", callback_data="_".join(["close", str(update.effective_message.id)]))]
+    ]
+    return telegram.InlineKeyboardMarkup(keyboard)

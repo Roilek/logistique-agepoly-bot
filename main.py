@@ -157,9 +157,11 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
             copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
                                                   reply_to_message_id=original_message_id)).message_id
             if not reply_to:
-                text = f"*{message.from_user.first_name} {message.from_user.last_name if message.from_user.last_name else ''}* {'(@'+message.from_user.username+')' if message.from_user.username else ''}\n{message.text}"
+                text = f"<b>{message.from_user.first_name} {message.from_user.last_name if message.from_user.last_name else ''}</b> {'(@'+message.from_user.username+')' if message.from_user.username else ''}\n{message.text}"
                 await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
-                                                    text=text, parse_mode=ParseMode.MARKDOWN)
+                                                    text=text, parse_mode=ParseMode.HTML,
+                                                    #reply_markup=mytelegram.get_close_ticket_keyboard(update)
+                                                    )
             database.add_message(message.id, copy_message_id, message.chat_id, message.text,
                                  reply_to.id if reply_to else None)
         else:
