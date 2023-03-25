@@ -198,13 +198,8 @@ def get_agreement_url_from_pk(pk: int) -> str:
 
 
 def get_agreement_pdf_from_pk(pk: int):
-    url = f"{TRUFFE_PATH}api/loanagreement/{pk}/pdf/"
-    print(url)
-
-    headers = {"Accept": "application/json", "Authorization": "Bearer " + TRUFFE_TOKEN}
-    document = requests.get(url, headers=headers)
-    print(headers)
-    # save document as text
-    with open("agreement.html", "wb") as f:
-        f.write(document.content)
-    return document.content
+    url = f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"
+    response = requests.get(url)
+    with open("agreement.pdf", "wb") as f:
+        f.write(response.content)
+    return response.content

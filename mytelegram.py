@@ -52,7 +52,7 @@ def get_one_res_keyboard(res_pk: int, page: int, displaying_all_res: bool) -> te
             telegram.InlineKeyboardButton("Convention", url=truffe.get_agreement_url_from_pk(res_pk))],
         [
             telegram.InlineKeyboardButton("⬅️", callback_data='_'.join(["reservations", disp, str(page)])),
-            #telegram.InlineKeyboardButton("Get PDF", callback_data=f"agreement_{res_pk}"),
+            telegram.InlineKeyboardButton("Get PDF", callback_data=f"agreement_{res_pk}"),
         ]
     ]
     return telegram.InlineKeyboardMarkup(keyboard)
