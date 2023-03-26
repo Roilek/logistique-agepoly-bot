@@ -82,9 +82,11 @@ async def start(update: Update, context: CallbackContext) -> any:
     if not database.user_exists(user_id):
         database.register_user(user_id, update.effective_user.first_name, update.effective_user.last_name,
                                update.effective_user.username)
-    text = "Hello! I'm the Logistic's helper bot.\n"
-    text += "Send me /help to know what you can do!"
-    await update.message.reply_text(text)
+    text = "Bonjour ! Je suis le bot de l'Équipe Logistique de l'AGEPoly,\n"
+    text += "Je sers de point de contact centralisé pour toutes vos questions et remarques concernant la logistique opérationnelle de l'AGEPoly.\n"
+    text += "Sachez que beaucoup d'informations sont disponibles dans <a href='https://wiki2.agepoly.ch/logistique'>notre wiki</a>, merci donc de vérifier que la réponse à votre question ne s'y trouve pas déjà !\n"
+    text += "Si besoin, n'hésitez pas à nous contacter en envoyant /contact.\n"
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
     return
 
 
@@ -123,7 +125,7 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
         await warn_cannot_use_command(update, commands["contact"]["accred"])
         return
     await update.message.reply_text(
-        f"Envoyez-moi le message que vous voulez, il sera transmis à l'Équipe Logistique qui vous répondra au plus vite !")
+        f"Envoyez-moi le message que vous voulez, il sera transmis à l'Équipe Logistique qui vous répondra au plus vite !\nAssurez-vous cependant d'avoir bien vérifié que la réponse à votre question ne se trouve pas dans <a href='https://wiki2.agepoly.ch/logistique'>le wiki</a> !", parse_mode=ParseMode.HTML)
     return
 
 
@@ -374,5 +376,4 @@ def refresh_calendar() -> None:
 
 if __name__ == '__main__':
     database.setup()
-    # asyncio.run(managecalendar.refresh_calendar(truffe.get_reservations()))
     main()
