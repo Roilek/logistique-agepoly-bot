@@ -97,3 +97,11 @@ def get_close_ticket_keyboard(update: Update) -> telegram.InlineKeyboardMarkup:
         [telegram.InlineKeyboardButton("Question résolue !", callback_data="_".join(["close", str(update.effective_message.id)]))]
     ]
     return telegram.InlineKeyboardMarkup(keyboard)
+
+
+def delete_message_keyboard(update: Update, text: str) -> telegram.InlineKeyboardMarkup:
+    """Returns a keyboard with the link to join the group"""
+    keyboard = [
+        [telegram.InlineKeyboardButton(text, callback_data="delete")]
+    ]
+    return telegram.InlineKeyboardMarkup(keyboard)

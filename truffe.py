@@ -200,6 +200,4 @@ def get_agreement_url_from_pk(pk: int) -> str:
 def get_agreement_pdf_from_pk(pk: int):
     url = f"{TRUFFE_PATH}loanagreement/{pk}/pdf/"
     response = requests.get(url)
-    with open("agreement.pdf", "wb") as f:
-        f.write(response.content)
     return response.content

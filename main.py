@@ -260,7 +260,8 @@ async def manage_external_callbacks(update: Update, context: CallbackContext, ar
                                             f"refusée. Si tu penses qu'il s'agit d'une erreur tu peux nous contacter "
                                             f"avec /contact !")
         await query.edit_message_text("Le reste inchangé. La personne qui a fait la demande a été prévenue.")
-        pass
+    elif args[0] == "delete":
+        await context.bot.delete_message(chat_id=query.message.chat_id, message_id=query.message.message_id)
     else:
         return False
     return True
@@ -292,7 +293,7 @@ async def manage_log_callbacks(update: Update, context: CallbackContext, args: l
     elif args[0] == "agreement":
         pk = int(args[1])
         document = io.BytesIO(truffe.get_agreement_pdf_from_pk(pk))
-        await context.bot.send_document(chat_id=query.message.chat_id, document=document, filename='agreement.pdf')
+        await context.bot.send_document(chat_id=query.message.chat_id, document=document, filename='agreement.pdf', reply_markup=mytelegram.delete_message_keyboard(update, "Supprimer le PDF"))
     else:
         return False
     return True
