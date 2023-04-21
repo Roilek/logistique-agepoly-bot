@@ -1,6 +1,7 @@
 import argparse
 import io
 import os
+import re
 
 from telegram import Update, constants
 from telegram.constants import ParseMode
@@ -131,6 +132,11 @@ async def contact_command(update: Update, context: CallbackContext) -> any:
 
 async def handle_messages(update: Update, context: CallbackContext) -> any:
     """Handle messages."""
+    # Is starts with '/' then it is a failed command attempt
+    pattern = r'^\/.*'
+    if re.match(pattern, update.message.text):
+        return await invalid_command(update, context)
+
     database.log_message(update.effective_user.id, update.message.text)
     # If the user is not registered, he cannot use the bot
     if not database.user_exists(update.effective_user.id):
@@ -347,6 +353,7 @@ def main() -> None:
     application.add_handler(CommandHandler('contact', contact_command))
     application.add_handler(CommandHandler('join', join))
     application.add_handler(CommandHandler('reservations', get_reservations))
+    application.add_handler(CommandHandler('res', get_reservations))
     application.add_handler(CommandHandler('calendar', update_calendar))
     application.add_handler(CommandHandler('clearcalendar', clear_calendar))
 
