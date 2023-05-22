@@ -134,7 +134,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
     """Handle messages."""
     # Is starts with '/' then it is a failed command attempt
     pattern = r'^\/.*'
-    if re.match(pattern, update.message.text):
+    if update.message.text is not None and re.match(pattern, update.message.text):
         return await invalid_command(update, context)
 
     database.log_message(update.effective_user.id, update.message.text)
