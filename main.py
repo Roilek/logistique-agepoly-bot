@@ -31,6 +31,7 @@ commands = {
     "contact": {"description": "Contacter l'Équipe Logistique", "accred": Accred.EXTERNAL},
     "join": {"description": "Obtenir une nouvelle accréditation", "accred": Accred.EXTERNAL},
     "reservations": {"description": "Voir la liste des reservations", "accred": Accred.TEAM_MEMBER},
+    "pdf": {"description": "Générer le pdf des réservations de la demi-journée en cours", "accred": Accred.TEAM_MEMBER},
     "calendar": {"description": "Actualiser le calendrier", "accred": Accred.TEAM_LEADER},
     "clearcalendar": {"description": "Vider le calendrier", "accred": Accred.TEAM_LEADER},
 }
@@ -213,6 +214,26 @@ async def get_reservations(update: Update, context: CallbackContext) -> any:
     return
 
 
+async def get_pdf(update: Update, context: CallbackContext) -> any:
+    """Send a pdf with all the pdfs of the current half day"""
+    database.log_command(update.effective_user.id, update.message.text)
+    if not await not_in_group(update):
+        return
+    if not can_use_command(update, commands["pdf"]["accred"]):
+        await warn_cannot_use_command(update, commands["pdf"]["accred"])
+        return
+
+    wait_message = await update.message.reply_text("PDF en génération. Merci de patienter...")
+    pks_list = list(map(lambda res: res['pk'], truffe.get_reservations_half_day()))
+    if len(pks_list) > 0:
+        agreements = truffe.get_agreements_pdf_merged_from_pks(pks_list)
+        await update.message.reply_document(agreements, filename="agreements.pdf",
+                                            reply_markup=mytelegram.delete_message_keyboard(update, "Supprimer le PDF"))
+    else:
+        await update.message.reply_text("Il n'y a pas de réservations pour cette demi-journée.")
+    await wait_message.delete()
+
+
 async def update_calendar(update: Update, context: CallbackContext) -> any:
     """Executed when the command /calendar is issued."""
     database.log_command(update.effective_user.id, update.message.text)
@@ -266,7 +287,7 @@ async def manage_external_callbacks(update: Update, context: CallbackContext, ar
                                        text=f"Ta demande d'accréditation en tant que {Accred(int(args[1]))} a été "
                                             f"refusée. Si tu penses qu'il s'agit d'une erreur tu peux nous contacter "
                                             f"avec /contact !")
-        await query.edit_message_text("Le reste inchangé. La personne qui a fait la demande a été prévenue.")
+        await query.edit_message_text("Le rôle reste inchangé. La personne qui a fait la demande a été prévenue.")
     elif args[0] == "delete":
         await context.bot.delete_message(chat_id=query.message.chat_id, message_id=query.message.message_id)
     else:
@@ -352,8 +373,8 @@ def main() -> None:
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(CommandHandler('contact', contact_command))
     application.add_handler(CommandHandler('join', join))
-    application.add_handler(CommandHandler('reservations', get_reservations))
-    application.add_handler(CommandHandler('res', get_reservations))
+    application.add_handler(CommandHandler(['reservations', 'res'], get_reservations))
+    application.add_handler(CommandHandler('pdf', get_pdf))
     application.add_handler(CommandHandler('calendar', update_calendar))
     application.add_handler(CommandHandler('clearcalendar', clear_calendar))
 
