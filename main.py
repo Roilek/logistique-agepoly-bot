@@ -11,6 +11,7 @@ import database
 import managecalendar
 import mytelegram
 import truffe
+import weekdays
 from accred import Accred
 from env import get_env_variables
 
@@ -223,8 +224,29 @@ async def get_pdf(update: Update, context: CallbackContext) -> any:
         await warn_cannot_use_command(update, commands["pdf"]["accred"])
         return
 
+    # Args processing
+    args = context.args
+    states = truffe.DEFAULT_ACCEPTED_STATES
+    day = None
+    mor = None
+    fut = True
+    for arg in args:
+        if arg in ("a", "all"):
+            states = truffe.EXTENDED_ACCEPTED_STATES
+        elif arg in ("0", "am", "matin", "morning"):
+            mor = True
+        elif arg in ("1", "pm", "après-midi", "afternoon"):
+            mor = False
+        elif arg in ("o", "old"):
+            fut = False
+        else:
+            wd = weekdays.Weekday.of(arg)
+            if wd is not None:
+                day = int(wd)
+
+    # response to the user and pdf generation
     wait_message = await update.message.reply_text("PDF en génération. Merci de patienter...")
-    pks_list = list(map(lambda res: res['pk'], truffe.get_reservations_half_day()))
+    pks_list = list(map(lambda res: res['pk'], truffe.get_reservations_half_day(states, day, mor, fut)))
     if len(pks_list) > 0:
         agreements = truffe.get_agreements_pdf_merged_from_pks(pks_list)
         await update.message.reply_document(agreements, filename="agreements.pdf",

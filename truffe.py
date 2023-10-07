@@ -90,17 +90,24 @@ def _sort_by_date(res_list: list[dict]) -> list[dict]:
     return sorted(res_list, key=lambda res: res['start_date'])
 
 
-def _filter_half_day(res_list: [dict], day: int = None, morning: bool = None) -> [dict]:
+def _filter_half_day(res_list: [dict], day: int = None, morning: bool = None, future: bool = True) -> [dict]:
     """Filter a list of reservations to keep only the ones on the half day selected"""
+    date = None
     if day is None or morning is None:
-        now = datetime.datetime.now(pytz.timezone('Europe/Zurich'))
-        day = now.weekday()
+        now = datetime.date.today()
         morning = now.time().hour < 12
+    else:
+        now = datetime.date.today()
+        wd = now.weekday()
+        advance = (day - wd) % 7
+        if not future:
+            advance -= 7
+        date = now + datetime.timedelta(advance)
 
     def predicate(res: dict) -> bool:
-        date = _datetime(res['start_date'])
-        is_morning = date.time().hour < 12
-        return date.weekday() == day and is_morning == morning
+        d = _datetime(res['start_date'])
+        is_morning = d.time().hour < 12
+        return d.day == date.day and d.month == date.month and is_morning == morning
 
     return list(filter(predicate, res_list))
 
@@ -163,8 +170,9 @@ def get_reservations(states: list = DEFAULT_ACCEPTED_STATES,
     return list(filter(lambda res: res['state'] in states, reservations))
 
 
-def get_reservations_half_day(states: list = DEFAULT_ACCEPTED_STATES, day: int = None, morning: bool = None) -> [dict]:
-    return _filter_half_day(get_reservations(states, sorted_list=False), day, morning)
+def get_reservations_half_day(states: list = DEFAULT_ACCEPTED_STATES, day: int = None, morning: bool = None, future = False) -> [dict]:
+    """Returns a list of all the reservations with one of th given states on the half day specified"""
+    return _filter_half_day(get_reservations(states, sorted_list=False), day, morning, future)
 
 
 def get_res_pk_info(states: list) -> list[tuple[int, str]]:
