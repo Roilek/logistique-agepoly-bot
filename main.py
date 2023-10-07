@@ -32,7 +32,9 @@ commands = {
     "contact": {"description": "Contacter l'Équipe Logistique", "accred": Accred.EXTERNAL},
     "join": {"description": "Obtenir une nouvelle accréditation", "accred": Accred.EXTERNAL},
     "reservations": {"description": "Voir la liste des reservations", "accred": Accred.TEAM_MEMBER},
-    "pdf": {"description": "Générer le pdf des réservations de la demi-journée en cours", "accred": Accred.TEAM_MEMBER},
+    "pdf": {"description": "Générer le pdf des réservations de la demi-journée en cours. Options possibles : " + \
+                           "jour (lu, ma, me...), matin/après-midi (am/pm), inclusion des draft (all), " + \
+                           "sélection de slot passés (old)", "accred": Accred.TEAM_MEMBER},
     "calendar": {"description": "Actualiser le calendrier", "accred": Accred.TEAM_LEADER},
     "clearcalendar": {"description": "Vider le calendrier", "accred": Accred.TEAM_LEADER},
 }
