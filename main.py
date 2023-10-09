@@ -11,7 +11,6 @@ import database
 import managecalendar
 import mytelegram
 import truffe
-import html
 from accred import Accred
 from env import get_env_variables
 
