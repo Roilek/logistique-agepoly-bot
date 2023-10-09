@@ -1,7 +1,10 @@
 import argparse
+import html
 import io
+import json
 import os
 import re
+import traceback
 
 from telegram import Update, constants
 from telegram.constants import ParseMode
@@ -19,6 +22,7 @@ ENV = get_env_variables()['ENV']
 HEROKU_PATH = get_env_variables()['HEROKU_PATH']
 TOKEN = get_env_variables()['TOKEN']
 SUPPORT_GROUP_ID = get_env_variables()['SUPPORT_GROUP_ID']
+MAINTAINERS_GROUP_ID = get_env_variables()['MAINTAINERS_GROUP_ID']
 
 RESERVATION_MENU_MESSAGE = "Choisissez une reservation :"
 
@@ -326,6 +330,23 @@ async def callback_query_handler(update: Update, context: CallbackContext) -> an
     return
 
 
+async def handle_error(update: object, context: CallbackContext):
+    """Log the error in the group of maintainers to let them debug"""
+    error_text = "".join(traceback.format_exception(None, context.error, context.error.__traceback__))
+    update_str = json.dumps(update.to_dict(), indent=2, ensure_ascii=False) if isinstance(update, Update) else str(update)
+    context_str = str(context.chat_data) + '\n' + str(context.user_data)
+    message = (f"Yo la team, j'ai du boulot pour vous :\n\n"
+               f"<b>update</b>\n"
+               f"<pre>{html.escape(update_str)}</pre>\n\n"
+               f"<b>context</b>\n"
+               f"<pre>{html.escape(context_str)}</pre>\n\n"
+               f"<b>Traceback</b>\n"
+               f"<pre>{html.escape(error_text)}</pre>")
+    await context.bot.send_message(
+        chat_id=MAINTAINERS_GROUP_ID, text=message, parse_mode=ParseMode.HTML
+    )
+
+
 def main() -> None:
     """Start the bot."""
     parser = argparse.ArgumentParser()
@@ -361,6 +382,8 @@ def main() -> None:
 
     application.add_handler(MessageHandler(filters.COMMAND, invalid_command))
     application.add_handler(MessageHandler(filters.ALL & (~filters.StatusUpdate.ALL), handle_messages))
+
+    application.add_error_handler(handle_error)
 
     print("Bot starting...")
     if os.environ.get('ENV') == 'TEST':
