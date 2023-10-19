@@ -16,6 +16,7 @@ def get_env_variables() -> dict[str, str]:
         'GSERVICE_CREDENTIALS': ast.literal_eval(os.environ.get('GSERVICE_CREDENTIALS')),
         'MONGO_URI': os.environ.get('MONGO_URI'),
         'SUPPORT_GROUP_ID': int(os.environ.get('SUPPORT_GROUP_ID')),
+        'MAINTAINERS_GROUP_ID': int(os.environ.get('MAINTAINERS_GROUP_ID'))
     }
 
 
