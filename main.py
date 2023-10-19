@@ -172,7 +172,7 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
             # If there is text, we can edit it
             copy_message_id = (await message.copy(chat_id=SUPPORT_GROUP_ID,
                                                   reply_to_message_id=original_message_id)).message_id
-            text = f"<b>{message.from_user.first_name} {message.from_user.last_name if message.from_user.last_name else ''}</b> {'(@'+message.from_user.username+')' if message.from_user.username else ''}\n{message.text}"
+            text = f"<b>{html.escape(message.from_user.first_name)} {html.escape(message.from_user.last_name if message.from_user.last_name else '')}</b> {html.escape('(@'+message.from_user.username+')' if message.from_user.username else '')}\n{html.escape(message.text)}"
             await context.bot.edit_message_text(chat_id=SUPPORT_GROUP_ID, message_id=copy_message_id,
                                                 text=text, parse_mode=ParseMode.HTML,
                                                 #reply_markup=mytelegram.get_close_ticket_keyboard(update)
