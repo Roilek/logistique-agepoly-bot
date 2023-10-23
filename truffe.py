@@ -122,19 +122,19 @@ def _extend_agreement(res_list: list[dict]) -> list[dict]:
 
 def _get_date(date: str) -> str:
     """Returns a string from a date in the format day/month"""
-    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+    return datetime.datetime.fromisoformat(date).astimezone(
         pytz.timezone('Europe/Zurich')).strftime("%d/%m")
 
 
 def _get_time(date: str) -> str:
     """Returns a string from a date in the format hour:minutes"""
-    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+    return datetime.datetime.fromisoformat(date).astimezone(
         pytz.timezone('Europe/Zurich')).strftime("%H:%M")
 
 
 def _get_datetime(date: str) -> str:
     """Returns a string from a date in the format day/month hour:minutes"""
-    return datetime.datetime.fromisoformat(date).replace(tzinfo=pytz.utc).astimezone(
+    return datetime.datetime.fromisoformat(date).astimezone(
         pytz.timezone('Europe/Zurich')).strftime("%d/%m %H:%M")
 
 
