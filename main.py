@@ -431,9 +431,9 @@ def main() -> None:
     application.add_error_handler(handle_error)
 
     print("Bot starting...")
-    if os.environ.get('ENV') == 'TEST':
+    if ENV == 'TEST':
         application.run_polling()
-    elif os.environ.get('ENV') == 'PROD':
+    elif ENV == 'PROD':
         application.run_webhook(listen="0.0.0.0",
                                 port=int(PORT),
                                 webhook_url=HEROKU_PATH,
