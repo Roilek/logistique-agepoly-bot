@@ -142,17 +142,18 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
     """Handle messages."""
     # Is starts with '/' then it is a failed command attempt
     pattern = r'^\/.*'
-    if update.message.text is not None and re.match(pattern, update.message.text):
+    if update.message is not None and update.message.text is not None and re.match(pattern, update.message.text):
         return await invalid_command(update, context)
 
-    database.log_message(update.effective_user.id, update.message.text)
+    if update.message is not None:
+        database.log_message(update.effective_user.id, update.message.text)
     # If the user is not registered, he cannot use the bot
     if not database.user_exists(update.effective_user.id):
         await update.message.reply_text(
             "Il faut être enregistré·e pour pouvoir discuter avec nous ! Merci d'utiliser /start pour t'enregistrer")
         return
     # If the message is an answer to a contact message, send it back to the user
-    message = update.message
+    message = update.message if update.message is not None else update.edited_message
     reply_to = message.reply_to_message
 
     if message.chat_id == SUPPORT_GROUP_ID:
@@ -162,8 +163,12 @@ async def handle_messages(update: Update, context: CallbackContext) -> any:
                                                   reply_to_message_id=original_message["original_id"])).message_id
             database.add_message(message.id, copy_message_id, message.chat_id, message.text, reply_to.id)
         elif message.chat_id != SUPPORT_GROUP_ID:
-            await message.reply_text(
+            if message is not None:
+                await message.reply_text(
                 "Je n'ai pas retrouvé le message original et ne peux donc pas transmettre la réponse :(")
+            else:
+                await update.edited_message.reply_text(
+                    "Je n'ai pas retrouvé le message original et ne peux donc pas transmettre la réponse :(")
     else:
         original_message_id = None
         if reply_to is not None:
